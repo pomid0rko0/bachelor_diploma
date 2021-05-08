@@ -1,0 +1,8 @@
+version: "2.0"
+
+intents:
+  - documents
+  - documents_how
+  - documents_list
+  - documents_contract
+  - documents_agreement
