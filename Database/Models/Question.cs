@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Database.Models
@@ -9,7 +10,7 @@ namespace Database.Models
         [Required]
         public string Text { set; get; }
         [Required]
-        public Intent Intent { set; get; }
+        public ICollection<Intent> Intents { set; get; }
 
     }
 }

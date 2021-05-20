@@ -10,8 +10,8 @@ namespace Database.Models
         [Required]
         public string Name { set; get; }
         [Required]
-        public virtual ICollection<Question> Questions { set; get; }
+        public ICollection<Question> Questions { set; get; }
         [Required]
-        public virtual ICollection<Answer> Answers { set; get; }
+        public ICollection<Answer> Answers { set; get; }
     }
 }
