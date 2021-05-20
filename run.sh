@@ -1,1 +1,1 @@
-docker compose up -d run --build
+docker compose up -d chatbotapi --build

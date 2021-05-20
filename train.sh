@@ -1,1 +1,1 @@
-docker compose up -d train --build
+docker compose up -d train_nlu --build
