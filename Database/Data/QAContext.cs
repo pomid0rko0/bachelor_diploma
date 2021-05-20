@@ -8,7 +8,6 @@ namespace Database.Data
         public QAContext(DbContextOptions<QAContext> options)
             : base(options)
         {
-
         }
         public DbSet<Intent> Intents { set; get; }
         public DbSet<Answer> Answers { set; get; }
@@ -17,7 +16,6 @@ namespace Database.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
         }
     }
 }
