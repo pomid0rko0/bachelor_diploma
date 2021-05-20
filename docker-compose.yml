@@ -17,6 +17,8 @@ services:
     depends_on:
       - run_nlu
       - postgres
+    environment:
+      migrateOnStartup: "false"
     build: ./Database
     ports:
       - 5004:8000
