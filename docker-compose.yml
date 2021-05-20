@@ -11,8 +11,6 @@ services:
       POSTGRES_USER: "NSTUChatbot"
       POSTGRES_PASSWORD: "NSTUChatbot"
       POSTGRES_DB: "NSTUChatbotDatabase"
-    # networks:
-    #   - chatbotapi-dev
 
   chatbotapi:
     image: chatbotapi:latest
@@ -21,9 +19,7 @@ services:
       - postgres
     build: ./Database
     ports:
-      - 8000:5000
-    # networks:
-    #   - chatbotapi-dev
+      - 5004:8000
 
   train_nlu:
     image: diploma_rasa_project
@@ -43,12 +39,6 @@ services:
     ports:
       - 5005:5005
     command: run --enable-api
-    # networks:
-    #   - chatbotapi-dev
-
-# networks:
-#   chatbotapi-dev:
-#     driver: bridge
 
 volumes:
   chatbot:
