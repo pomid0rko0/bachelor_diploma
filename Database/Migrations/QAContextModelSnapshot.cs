@@ -62,18 +62,28 @@ namespace Database.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int>("IntentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IntentId");
-
                     b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("IntentQuestion", b =>
+                {
+                    b.Property<int>("IntentsId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QuestionsId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IntentsId", "QuestionsId");
+
+                    b.HasIndex("QuestionsId");
+
+                    b.ToTable("IntentQuestion");
                 });
 
             modelBuilder.Entity("Database.Models.Answer", b =>
@@ -87,22 +97,24 @@ namespace Database.Migrations
                     b.Navigation("Intent");
                 });
 
-            modelBuilder.Entity("Database.Models.Question", b =>
+            modelBuilder.Entity("IntentQuestion", b =>
                 {
-                    b.HasOne("Database.Models.Intent", "Intent")
-                        .WithMany("Questions")
-                        .HasForeignKey("IntentId")
+                    b.HasOne("Database.Models.Intent", null)
+                        .WithMany()
+                        .HasForeignKey("IntentsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Intent");
+                    b.HasOne("Database.Models.Question", null)
+                        .WithMany()
+                        .HasForeignKey("QuestionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Database.Models.Intent", b =>
                 {
                     b.Navigation("Answers");
-
-                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }

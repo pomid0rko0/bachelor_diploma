@@ -21,6 +21,19 @@ namespace Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Questions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Text = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Answers",
                 columns: table => new
                 {
@@ -41,21 +54,25 @@ namespace Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Questions",
+                name: "IntentQuestion",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Text = table.Column<string>(type: "text", nullable: false),
-                    IntentId = table.Column<int>(type: "integer", nullable: false)
+                    IntentsId = table.Column<int>(type: "integer", nullable: false),
+                    QuestionsId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Questions", x => x.Id);
+                    table.PrimaryKey("PK_IntentQuestion", x => new { x.IntentsId, x.QuestionsId });
                     table.ForeignKey(
-                        name: "FK_Questions_Intents_IntentId",
-                        column: x => x.IntentId,
+                        name: "FK_IntentQuestion_Intents_IntentsId",
+                        column: x => x.IntentsId,
                         principalTable: "Intents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_IntentQuestion_Questions_QuestionsId",
+                        column: x => x.QuestionsId,
+                        principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -66,9 +83,9 @@ namespace Database.Migrations
                 column: "IntentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_IntentId",
-                table: "Questions",
-                column: "IntentId");
+                name: "IX_IntentQuestion_QuestionsId",
+                table: "IntentQuestion",
+                column: "QuestionsId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -77,10 +94,13 @@ namespace Database.Migrations
                 name: "Answers");
 
             migrationBuilder.DropTable(
-                name: "Questions");
+                name: "IntentQuestion");
 
             migrationBuilder.DropTable(
                 name: "Intents");
+
+            migrationBuilder.DropTable(
+                name: "Questions");
         }
     }
 }
