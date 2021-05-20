@@ -30,21 +30,26 @@ namespace Database.Controllers
         [ProducesResponseType(404)]
         public ActionResult<IEnumerable<Intent>> Get(int? intentId = null, string? intentName = null, int? size = null)
         {
+            if ((intentId != null || intentName != null) && size != null && size != 1)
+            {
+                return BadRequest("Only one parameter avaiable at time: intent or number of answers");
+            }            
             if ((size == null || size == 1) && (intentId != null || intentName != null))
             {
-                var intent = _context.Intents.Where(i => i.IsSame(intentId, intentName)).First();
+                var intent = _context.Intents
+                    .Where(
+                        i => (intentId == null || intentId == i.Id) &&
+                             (intentName == null || intentName == i.Name)
+                    )
+                    .First();
                 if (intent == null)
                 {
                     return NotFound("No such intent");
                 }
                 return new List<Intent> { intent };
             }
-            if (size != null && intentId == null && intentName == null)
-            {
-                int s = size ?? _context.Intents.Count();
-                return _context.Intents.Take(s).ToArray();
-            }
-            return BadRequest("Either search for one intent or take several intents");
+            int s = size ?? _context.Intents.Count();
+            return _context.Intents.Take(s).ToList();
         }
 
         [HttpPost]
@@ -52,7 +57,7 @@ namespace Database.Controllers
         [ProducesResponseType(400)]
         public ActionResult<Intent> Post(string intentName)
         {
-            bool alreadyExists = _context.Intents.ToList().Any(i => i.IsSame(null, intentName));
+            bool alreadyExists = _context.Intents.Any(i => intentName == i.Name);
             if (alreadyExists)
             {
                 return BadRequest("Such intent already exists");
@@ -73,12 +78,18 @@ namespace Database.Controllers
         [ProducesResponseType(404)]
         public ActionResult<Intent> Delete(int? intentId = null, string? intentName = null, string? text = null)
         {
-            var intent = _context.Intents.Where(i => i.IsSame(intentId, intentName)).First();
+            var intent = _context.Intents
+                .Where(
+                    i => (intentId == null || intentId == i.Id) &&
+                         (intentName == null || intentName == i.Name)
+                )
+                .First();
             if (intent == null)
             {
                 return NotFound("No such intent");
             }
             _context.Intents.Remove(intent);
+            _context.SaveChanges();
             return intent;
         }
     }

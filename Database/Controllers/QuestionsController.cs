@@ -26,16 +26,38 @@ namespace Database.Controllers
 #nullable enable
         [HttpGet]
         [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         public ActionResult<IEnumerable<Question>> Get(int? intentId = null, string? intentName = null, int? size = null)
         {
-            var intent = _context.Intents.Where(i => i.IsSame(intentId, intentName)).First();
-            if (intent == null)
+            if ((intentId != null || intentName != null) && size != null && size != 1)
             {
-                return NotFound("No such intent");
+                return BadRequest("Only one parameter avaiable at time: intent or number of questions");
             }
-            int s = size ?? _context.Questions.Count();
-            return _context.Questions.Where(q => q.Intent.Id == intent.Id).Take(s).ToArray();
+            if (size != null && size < 0)
+            {
+                return BadRequest("size can't be < 0");
+            }
+            if (intentId != null || intentName != null)
+            {
+                var intent = _context.Intents
+                    .Where(
+                        i => (intentId == null || intentId == i.Id) &&
+                            (intentName == null || intentName == i.Name) &&
+                            (intentId != null || intentName != null)
+                    )
+                    .First();
+                if (intent == null)
+                {
+                    return NotFound("No such intent");
+                }
+                return _context.Questions.Where(q => q.Intent.Id == intent.Id).Take(1).ToList();
+            }
+            else 
+            {
+                int s = size ?? _context.Questions.Count();
+                return _context.Questions.Take(s).ToList();
+            }
         }
 
         [HttpPost]
@@ -44,17 +66,36 @@ namespace Database.Controllers
         [ProducesResponseType(404)]
         public ActionResult<Question> Post(string text, int? intentId = null, string? intentName = null)
         {
-            bool alreadyExist = _context.Questions.Any(q => q.Text == text && q.Intent.IsSame(intentId, intentName));
-            if (alreadyExist)
+            if (intentId == null && intentName == null)
+            {
+                return BadRequest("Either intentId or intentName must be defined");
+            }
+            Question question = _context.Questions.Where(q => q.Text == text).First();
+            if (question != null)
             {
                 return BadRequest("Such question already exists");
             }
-            var intent = _context.Intents.Where(i => i.IsSame(intentId, intentName)).First();
+            var intent = _context.Intents
+                .Where(
+                    i => (intentId == null || intentId == i.Id) &&
+                         (intentName == null || intentName == i.Name)
+                )
+                .First();
             if (intent == null)
             {
                 return NotFound("Such intent not found");
             }
-            Question question = new Question
+            question = _context.Questions
+                .Where(                    
+                    q => (intentId == null || intentId == q.Intent.Id) &&
+                         (intentName == null || intentName == q.Intent.Name)
+                )
+                .First();
+            if (question != null)
+            {
+                return BadRequest("Question with such intent already exists");
+            }
+            question = new Question
             {
                 Intent = intent,
                 Text = text
@@ -70,10 +111,20 @@ namespace Database.Controllers
         [ProducesResponseType(404)]
         public ActionResult<Question> Delete(int? intentId = null, string? intentName = null, string? text = null)
         {
-            var question = _context.Questions.Where(q => q.Intent.IsSame(intentId, intentName) && (q.Text == text || String.IsNullOrEmpty(text))).First();
+            if (intentId == null && intentName == null && text == null)
+            {
+                return BadRequest("Either intent or text must be defined");
+            }
+            var question = _context.Questions
+                .Where(
+                    q => (intentId == null || intentId == q.Intent.Id) &&
+                         (intentName == null || intentName == q.Intent.Name) &&
+                         (String.IsNullOrEmpty(text) || q.Text == text)
+                )
+                .First();
             if (question == null)
             {
-                return NotFound("No such question");
+                return NotFound("No such question with such intent");
             }
             _context.Questions.Remove(question);
             question.Intent.Questions.Remove(question);
