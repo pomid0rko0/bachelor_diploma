@@ -40,18 +40,26 @@ namespace Database.Controllers
             }
             if (intentId != null || intentName != null)
             {
-                var intent = _context.Intents
-                    .Where(
+                Intent? intent = null;
+                try
+                {
+                    intent = _context.Intents.Single(
                         i => (intentId == null || intentId == i.Id) &&
-                            (intentName == null || intentName == i.Name) &&
-                            (intentId != null || intentName != null)
-                    )
-                    .First();
-                if (intent == null)
+                             (intentName == null || intentName == i.Name)
+                    );
+                }
+                catch (Exception)
                 {
                     return NotFound("No such intent");
                 }
-                return _context.Answers.Where(a => a.Intent.Id == intent.Id).Take(1).ToList();
+                try
+                {
+                    return _context.Answers.Where(a => a.Intent.Id == intent.Id).Take(1).ToList();
+                }
+                catch (Exception)
+                {
+                    return new List<Answer>();
+                }
             }
             else 
             {
@@ -70,32 +78,26 @@ namespace Database.Controllers
             {
                 return BadRequest("Either intentId or intentName must be defined");
             }
-            Answer answer = _context.Answers.Where(a => a.Text == text).First();
-            if (answer != null)
+            bool alreadyExists = _context.Answers.Any(a => a.Text == text);
+            if (alreadyExists) return BadRequest("Such answer already exists");
+            Intent? intent = null;
+            try
             {
-                return BadRequest("Such answer already exists");
-            }
-            var intent = _context.Intents
-                .Where(
+                intent = _context.Intents.Single(
                     i => (intentId == null || intentId == i.Id) &&
                          (intentName == null || intentName == i.Name)
-                )
-                .First();
-            if (intent == null)
-            {
-                return NotFound("Such intent not found");
+                );
             }
-            answer = _context.Answers
-                .Where(                    
-                    a => (intentId == null || intentId == a.Intent.Id) &&
-                         (intentName == null || intentName == a.Intent.Name)
-                )
-                .First();
-            if (answer != null)
+            catch (Exception)
             {
-                return BadRequest("Answer with such intent already exists");
+                return NotFound("No such intent");
             }
-            answer = new Answer
+            alreadyExists = _context.Answers.Any(                    
+                a => (intentId == null || intentId == a.Intent.Id) &&
+                    (intentName == null || intentName == a.Intent.Name)
+            );
+            if (alreadyExists) return BadRequest("Answer with such intent already exists");
+            var answer = new Answer
             {
                 Intent = intent,
                 Text = text
@@ -115,14 +117,16 @@ namespace Database.Controllers
             {
                 return BadRequest("Either intent or text must be defined");
             }
-            var answer = _context.Answers
-                .Where(
+            Answer? answer = null;
+            try 
+            {
+                answer = _context.Answers.Single(
                     a => (intentId == null || intentId == a.Intent.Id) &&
-                         (intentName == null || intentName == a.Intent.Name) &&
-                         (String.IsNullOrEmpty(text) || a.Text == text)
-                )
-                .First();
-            if (answer == null)
+                        (intentName == null || intentName == a.Intent.Name) &&
+                        (String.IsNullOrEmpty(text) || a.Text == text)
+                );
+            }
+            catch (Exception)
             {
                 return NotFound("No such answer with such intent");
             }

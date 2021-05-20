@@ -40,18 +40,26 @@ namespace Database.Controllers
             }
             if (intentId != null || intentName != null)
             {
-                var intent = _context.Intents
-                    .Where(
+                Intent? intent = null;
+                try
+                {
+                    intent = _context.Intents.Single(
                         i => (intentId == null || intentId == i.Id) &&
-                            (intentName == null || intentName == i.Name) &&
-                            (intentId != null || intentName != null)
-                    )
-                    .First();
-                if (intent == null)
+                             (intentName == null || intentName == i.Name)
+                    );
+                }
+                catch (Exception)
                 {
                     return NotFound("No such intent");
                 }
-                return _context.Questions.Where(q => q.Intent.Id == intent.Id).Take(1).ToList();
+                try
+                {
+                    return _context.Questions.Where(q => q.Intent.Id == intent.Id).Take(1).ToList();
+                }
+                catch (Exception)
+                {
+                    return new List<Question>();
+                }
             }
             else 
             {
@@ -70,32 +78,26 @@ namespace Database.Controllers
             {
                 return BadRequest("Either intentId or intentName must be defined");
             }
-            Question question = _context.Questions.Where(q => q.Text == text).First();
-            if (question != null)
+            bool alreadyExists = _context.Questions.Any(q => q.Text == text);
+            if (alreadyExists) return BadRequest("Such question already exists");
+            Intent? intent = null;
+            try
             {
-                return BadRequest("Such question already exists");
-            }
-            var intent = _context.Intents
-                .Where(
+                intent = _context.Intents.Single(
                     i => (intentId == null || intentId == i.Id) &&
                          (intentName == null || intentName == i.Name)
-                )
-                .First();
-            if (intent == null)
-            {
-                return NotFound("Such intent not found");
+                );
             }
-            question = _context.Questions
-                .Where(                    
-                    q => (intentId == null || intentId == q.Intent.Id) &&
-                         (intentName == null || intentName == q.Intent.Name)
-                )
-                .First();
-            if (question != null)
+            catch (Exception)
             {
-                return BadRequest("Question with such intent already exists");
+                return NotFound("No such intent");
             }
-            question = new Question
+            alreadyExists = _context.Questions.Any(                    
+                q => (intentId == null || intentId == q.Intent.Id) &&
+                    (intentName == null || intentName == q.Intent.Name)
+            );
+            if (alreadyExists) return BadRequest("Question with such intent already exists");
+            var question = new Question
             {
                 Intent = intent,
                 Text = text
@@ -115,14 +117,16 @@ namespace Database.Controllers
             {
                 return BadRequest("Either intent or text must be defined");
             }
-            var question = _context.Questions
-                .Where(
+            Question? question = null;
+            try 
+            {
+                question = _context.Questions.Single(
                     q => (intentId == null || intentId == q.Intent.Id) &&
-                         (intentName == null || intentName == q.Intent.Name) &&
-                         (String.IsNullOrEmpty(text) || q.Text == text)
-                )
-                .First();
-            if (question == null)
+                        (intentName == null || intentName == q.Intent.Name) &&
+                        (String.IsNullOrEmpty(text) || q.Text == text)
+                );
+            }
+            catch (Exception)
             {
                 return NotFound("No such question with such intent");
             }

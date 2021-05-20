@@ -36,13 +36,15 @@ namespace Database.Controllers
             }            
             if ((size == null || size == 1) && (intentId != null || intentName != null))
             {
-                var intent = _context.Intents
-                    .Where(
+                Intent? intent = null;
+                try
+                {
+                    intent = _context.Intents.Single(
                         i => (intentId == null || intentId == i.Id) &&
                              (intentName == null || intentName == i.Name)
-                    )
-                    .First();
-                if (intent == null)
+                    );
+                }
+                catch (Exception)
                 {
                     return NotFound("No such intent");
                 }
@@ -76,15 +78,21 @@ namespace Database.Controllers
         [HttpDelete]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Intent> Delete(int? intentId = null, string? intentName = null, string? text = null)
+        public ActionResult<Intent> Delete(int? intentId = null, string? intentName = null)
         {
-            var intent = _context.Intents
-                .Where(
+            if (intentId == null && intentName == null)
+            {
+                return BadRequest("Either intentId or intentName must be defined");
+            }
+            Intent? intent = null;
+            try
+            {
+                intent = _context.Intents.Single(
                     i => (intentId == null || intentId == i.Id) &&
                          (intentName == null || intentName == i.Name)
-                )
-                .First();
-            if (intent == null)
+                );
+            }
+            catch (Exception)
             {
                 return NotFound("No such intent");
             }
