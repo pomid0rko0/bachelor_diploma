@@ -1,6 +1,6 @@
-FROM rasa/rasa:latest
+FROM rasa/rasa:2.6.2
 
-WORKDIR /app
+WORKDIR /app/NLU
 
 COPY ./config.yml ./config.yml
 COPY ./domain.yml ./domain.yml
