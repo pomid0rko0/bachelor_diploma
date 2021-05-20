@@ -13,13 +13,5 @@ namespace Database.Models
         public virtual ICollection<Question> Questions { set; get; }
         [Required]
         public virtual ICollection<Answer> Answers { set; get; }
-
-#nullable enable
-        public bool IsSame(int? otherId = null, string? otherName = null)
-        {
-            var OId = otherId ?? Id; 
-            var OName = otherName ?? Name;
-            return Id == otherId && Name == otherName;
-        }
     }
 }
