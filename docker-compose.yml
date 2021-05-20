@@ -18,7 +18,7 @@ services:
       - run_nlu
       - postgres
     environment:
-      migrateOnStartup: "false"
+      migrateOnStartup: "true"
     build: ./Database
     ports:
       - 5004:8000
