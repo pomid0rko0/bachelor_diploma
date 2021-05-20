@@ -26,79 +26,85 @@ namespace Database.Controllers
 #nullable enable
         [HttpGet]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Intent>> Get(int? intentId = null, string? intentName = null, int? size = null)
+        public ActionResult<IEnumerable<Intent>> GetAll()
         {
-            if ((intentId != null || intentName != null) && size != null && size != 1)
+            return _context.Intents.ToList();
+        }
+
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public ActionResult<IEnumerable<Intent>> GetN([FromQuery] int size)
+        {
+            if (size < 1)
             {
-                return BadRequest("Only one parameter avaiable at time: intent or number of answers");
-            }            
-            if ((size == null || size == 1) && (intentId != null || intentName != null))
-            {
-                Intent? intent = null;
-                try
-                {
-                    intent = _context.Intents.Single(
-                        i => (intentId == null || intentId == i.Id) &&
-                             (intentName == null || intentName == i.Name)
-                    );
-                }
-                catch (Exception)
-                {
-                    return NotFound("No such intent");
-                }
-                return new List<Intent> { intent };
+                return BadRequest("size can't be < 1");
             }
-            int s = size ?? _context.Intents.Count();
-            return _context.Intents.Take(s).ToList();
+            return _context.Intents.Take(Math.Min(size, _context.Intents.Count())).ToList();
+        }
+
+        [HttpGet("{intent}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<Answer> GetByName([FromQuery] string intent)
+        {
+            try
+            {
+                return _context.Answers.Single(a => a.Intent.Name == intent);
+            }
+            catch (Exception)
+            {
+                return NotFound("Answer with such intent not found");
+            }
         }
 
         [HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public ActionResult<Intent> Post(string intentName)
+        public ActionResult<Intent> Post(string intent)
         {
-            bool alreadyExists = _context.Intents.Any(i => intentName == i.Name);
+            bool alreadyExists = _context.Intents.Any(i => intent == i.Name);
             if (alreadyExists)
             {
                 return BadRequest("Such intent already exists");
             }
-            Intent intent = new Intent
+            Intent i = new Intent
             {
-                Name = intentName,
+                Name = intent,
                 Questions = new List<Question>(),
                 Answers = new List<Answer>(),
             };
-            var i = _context.Intents.Add(intent).Entity;
+            var e = _context.Intents.Add(i).Entity;
             _context.SaveChanges();
-            return i;
+            return e;
         }
 
         [HttpDelete]
         [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Intent> Delete(int? intentId = null, string? intentName = null)
+        public ActionResult<Intent> Delete(string intent)
         {
-            if (intentId == null && intentName == null)
-            {
-                return BadRequest("Either intentId or intentName must be defined");
-            }
-            Intent? intent = null;
+            Intent? i = null;
             try
             {
-                intent = _context.Intents.Single(
-                    i => (intentId == null || intentId == i.Id) &&
-                         (intentName == null || intentName == i.Name)
-                );
+                i = _context.Intents.Single(i => intent == i.Name);
             }
             catch (Exception)
             {
                 return NotFound("No such intent");
             }
-            _context.Intents.Remove(intent);
+            if (i.Questions.Count() > 0)
+            {
+                return BadRequest("Some questions depends on this intent");
+            }
+            if (i.Answers.Count() > 0)
+            {
+                return BadRequest("Some answers depends on this intent");
+            }
+            _context.Intents.Remove(i);
             _context.SaveChanges();
-            return intent;
+            return i;
         }
     }
 }

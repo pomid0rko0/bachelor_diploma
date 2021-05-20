@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using Database.Data;
 using Database.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Database.Controllers
 {
@@ -26,45 +27,35 @@ namespace Database.Controllers
 #nullable enable
         [HttpGet]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Answer>> Get(int? intentId = null, string? intentName = null, int? size = null)
+        public ActionResult<IEnumerable<Answer>> GetAll()
         {
-            if ((intentId != null || intentName != null) && size != null && size != 1)
+            return _context.Answers.ToList();
+        }
+
+        [HttpGet]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public ActionResult<IEnumerable<Answer>> GetN([FromQuery] int size)
+        {
+            if (size < 1)
             {
-                return BadRequest("Only one parameter avaiable at time: intent or number of answers");
+                return BadRequest("size can't be < 1");
             }
-            if (size != null && size < 0)
+            return _context.Answers.Take(Math.Min(size, _context.Answers.Count())).ToList();
+        }
+
+        [HttpGet("{intent}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<Answer> GetByIntent([FromQuery] string intent)
+        {
+            try
             {
-                return BadRequest("size can't be < 0");
+                return _context.Answers.Single(a => a.Intent.Name == intent);
             }
-            if (intentId != null || intentName != null)
+            catch (Exception)
             {
-                Intent? intent = null;
-                try
-                {
-                    intent = _context.Intents.Single(
-                        i => (intentId == null || intentId == i.Id) &&
-                             (intentName == null || intentName == i.Name)
-                    );
-                }
-                catch (Exception)
-                {
-                    return NotFound("No such intent");
-                }
-                try
-                {
-                    return _context.Answers.Where(a => a.Intent.Id == intent.Id).Take(1).ToList();
-                }
-                catch (Exception)
-                {
-                    return new List<Answer>();
-                }
-            }
-            else 
-            {
-                int s = size ?? _context.Answers.Count();
-                return _context.Answers.Take(s).ToList();
+                return NotFound("Answer with such intent not found");
             }
         }
 
@@ -72,38 +63,26 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> Post(string text, int? intentId = null, string? intentName = null)
+        public ActionResult<Answer> Post(string intent, string text)
         {
-            if (intentId == null && intentName == null)
-            {
-                return BadRequest("Either intentId or intentName must be defined");
-            }
-            bool alreadyExists = _context.Answers.Any(a => a.Text == text);
+            bool alreadyExists = _context.Answers.Any(a => a.Text == text || a.Intent.Name == intent);
             if (alreadyExists) return BadRequest("Such answer already exists");
-            Intent? intent = null;
+            Intent? realIntent = null;
             try
             {
-                intent = _context.Intents.Single(
-                    i => (intentId == null || intentId == i.Id) &&
-                         (intentName == null || intentName == i.Name)
-                );
+                realIntent = _context.Intents.Single(i => i.Name != intent);
             }
             catch (Exception)
             {
-                return NotFound("No such intent");
+                return NotFound("Intent not found");
             }
-            alreadyExists = _context.Answers.Any(                    
-                a => (intentId == null || intentId == a.Intent.Id) &&
-                    (intentName == null || intentName == a.Intent.Name)
-            );
-            if (alreadyExists) return BadRequest("Answer with such intent already exists");
             var answer = new Answer
             {
-                Intent = intent,
+                Intent = realIntent,
                 Text = text
             };
             var a = _context.Answers.Add(answer).Entity;
-            intent.Answers.Add(a);
+            realIntent.Answers.Add(a);
             _context.SaveChanges();
             return a;
         }
@@ -111,24 +90,20 @@ namespace Database.Controllers
         [HttpDelete]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> Delete(int? intentId = null, string? intentName = null, string? text = null)
+        public ActionResult<Answer> Delete(string? text, string? intent)
         {
-            if (intentId == null && intentName == null && text == null)
+            if (text == null || intent == null)
             {
-                return BadRequest("Either intent or text must be defined");
+                return BadRequest("At least one text or intent must be defined");
             }
             Answer? answer = null;
-            try 
+            try
             {
-                answer = _context.Answers.Single(
-                    a => (intentId == null || intentId == a.Intent.Id) &&
-                        (intentName == null || intentName == a.Intent.Name) &&
-                        (String.IsNullOrEmpty(text) || a.Text == text)
-                );
+                answer = _context.Answers.Single(a => a.Text == text || a.Intent.Name == intent);
             }
             catch (Exception)
             {
-                return NotFound("No such answer with such intent");
+                return BadRequest("Answer not found");
             }
             _context.Answers.Remove(answer);
             answer.Intent.Answers.Remove(answer);
