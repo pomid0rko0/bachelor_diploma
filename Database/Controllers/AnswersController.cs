@@ -35,7 +35,7 @@ namespace Database.Controllers
                 return NotFound("No such intent");
             }
             int s = size ?? _context.Answers.Count();
-            return _context.Answers.Where(a => a.Intent.Id == intent.Id).Take(s).ToArray();
+            return _context.Answers.Where(a => a.Intent.Id == intent.Id).Take(s).ToList();
         }
 
         [HttpPost]
@@ -61,6 +61,7 @@ namespace Database.Controllers
             };
             var a = _context.Answers.Add(answer).Entity;
             intent.Answers.Add(a);
+            _context.SaveChanges();
             return a;
         }
 
@@ -76,6 +77,7 @@ namespace Database.Controllers
             }
             _context.Answers.Remove(answer);
             answer.Intent.Answers.Remove(answer);
+            _context.SaveChanges();
             return answer;
         }
     }

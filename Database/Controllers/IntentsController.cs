@@ -52,17 +52,20 @@ namespace Database.Controllers
         [ProducesResponseType(400)]
         public ActionResult<Intent> Post(string intentName)
         {
-            bool alreadyExist = _context.Intents.Any(i => i.IsSame(null, intentName));
-            if (alreadyExist)
+            bool alreadyExists = _context.Intents.ToList().Any(i => i.IsSame(null, intentName));
+            if (alreadyExists)
             {
                 return BadRequest("Such intent already exists");
             }
-
             Intent intent = new Intent
             {
-                Name = intentName
+                Name = intentName,
+                Questions = new List<Question>(),
+                Answers = new List<Answer>(),
             };
-            return _context.Intents.Add(intent).Entity;
+            var i = _context.Intents.Add(intent).Entity;
+            _context.SaveChanges();
+            return i;
         }
 
         [HttpDelete]

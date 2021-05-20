@@ -61,6 +61,7 @@ namespace Database.Controllers
             };
             var q = _context.Questions.Add(question).Entity;
             intent.Questions.Add(q);
+            _context.SaveChanges();
             return q;
         }
 
@@ -76,6 +77,7 @@ namespace Database.Controllers
             }
             _context.Questions.Remove(question);
             question.Intent.Questions.Remove(question);
+            _context.SaveChanges();
             return question;
         }
     }
