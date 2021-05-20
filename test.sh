@@ -4,7 +4,7 @@ do
     curl --header "Content-Type: application/json" \
     --request POST \
     --data "@temp" \
-    http://localhost:8080/model/parse;
+    http://localhost:5005/model/parse;
     echo;
     echo;
 done < $1;
