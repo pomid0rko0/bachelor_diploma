@@ -1,21 +1,54 @@
 services:
-    train:
-      image: diploma_rasa_project
-      build: ./NLU
-      volumes:
-        - chatbot:/app/data
-        - chatbot:/app/models
-      command: train nlu
-    
-    run:
-      image: diploma_rasa_project
-      build: ./NLU
-      volumes:
-        - chatbot:/app/data
-        - chatbot:/app/models
-      ports:
-        - "8080:5005"
-      command: run --enable-api
+  postgres:
+    image: postgres:13.3
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - chatbot:/app/NLU/data
+      - chatbot:/app/NLU/models
+    environment:
+      POSTGRES_USER: "NSTUChatbot"
+      POSTGRES_PASSWORD: "NSTUChatbot"
+      POSTGRES_DB: "NSTUChatbotDatabase"
+    # networks:
+    #   - chatbotapi-dev
+
+  chatbotapi:
+    image: chatbotapi:latest
+    depends_on:
+      - run_nlu
+      - postgres
+    build: ./Database
+    ports:
+      - 8000:5000
+    # networks:
+    #   - chatbotapi-dev
+
+  train_nlu:
+    image: diploma_rasa_project
+    build: ./NLU
+    volumes:
+      - chatbot:/app/NLU/data
+      - chatbot:/app/NLU/models
+    command: train nlu
+
+  run_nlu:
+    image: diploma_rasa_project
+    build: ./NLU
+    volumes:
+      - chatbot:/app/NLU/data
+      - chatbot:/app/NLU/models
+      - chatbot:/var/lib/postgresql/data
+    ports:
+      - 5005:5005
+    command: run --enable-api
+    # networks:
+    #   - chatbotapi-dev
+
+# networks:
+#   chatbotapi-dev:
+#     driver: bridge
 
 volumes:
-    chatbot:
+  chatbot:
