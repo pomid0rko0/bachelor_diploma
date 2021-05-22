@@ -1,16 +1,16 @@
 services:
   postgres:
-    image: postgres:13.3
+    image: postgres:ru_RU.utf8
+    build: ./Postgres
     ports:
       - "5432"
     restart: always
     volumes:
-      - chatbot:/app/NLU/data
-      - chatbot:/app/NLU/models
+      - chatbot:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: "NSTUChatbot"
-      POSTGRES_PASSWORD: "NSTUChatbot"
-      POSTGRES_DB: "NSTUChatbotDatabase"
+      POSTGRES_USER: NSTUChatbot
+      POSTGRES_PASSWORD: NSTUChatbot
+      POSTGRES_DB: NSTUChatbotDatabase
 
   chatbotapi:
     image: chatbotapi:latest
@@ -37,7 +37,6 @@ services:
     volumes:
       - chatbot:/app/NLU/data
       - chatbot:/app/NLU/models
-      - chatbot:/var/lib/postgresql/data
     ports:
       - 5005:5005
     command: run --enable-api
