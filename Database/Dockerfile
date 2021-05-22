@@ -14,7 +14,12 @@ WORKDIR /src
 COPY ["./Database.csproj", "./"]
 RUN dotnet restore "./Database.csproj"
 COPY . .
-WORKDIR "/src/."
+
+RUN dotnet tool install --global dotnet-ef
+ENV PATH /root/.dotnet/tools:$PATH
+
+RUN dotnet ef migrations add InitialCreate
+
 RUN dotnet build "Database.csproj" -c Release -o /app/Database/build
 
 FROM build AS publish

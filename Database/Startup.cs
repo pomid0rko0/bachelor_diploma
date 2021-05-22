@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Database.Data;
 
@@ -33,6 +34,10 @@ namespace Database
             services.AddDbContext<QAContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("QAContext")));
             services.AddControllers();
+
+            services.AddControllers().AddJsonOptions(
+                options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve
+            );
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Database", Version = "v1" });
