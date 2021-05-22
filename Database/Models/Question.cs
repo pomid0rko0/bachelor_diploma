@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Database.Models
 {
     public class Question
     {
         [Key]
-        public int Id { set; get; }
+        public int QuestionId { get; set; }
         [Required]
-        public string Text { set; get; }
-        [Required]
-        public ICollection<Intent> Intents { set; get; }
-
+        public string QuestionText { get; set; }
+        public virtual ICollection<Intent> Intent { get; set; }
     }
 }

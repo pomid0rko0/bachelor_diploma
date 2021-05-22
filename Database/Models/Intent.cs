@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Database.Models
 {
     public class Intent
     {
         [Key]
-        public int Id { set; get; }
+        public int IntentId { get; set; }
         [Required]
-        public string Name { set; get; }
-        [Required]
-        public ICollection<Question> Questions { set; get; }
-        [Required]
-        public ICollection<Answer> Answers { set; get; }
+        public string IntentName { get; set; }
+
+        [ForeignKey("Answer")]
+         public int? AnswerId { get; set; }
+        public virtual Answer Answer { get; set; }
+
+        public virtual ICollection<Question> Question { get; set; }
+
     }
 }

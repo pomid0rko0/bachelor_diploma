@@ -9,9 +9,9 @@ namespace Database.Data
             : base(options)
         {
         }
-        public DbSet<Intent> Intents { set; get; }
-        public DbSet<Answer> Answers { set; get; }
-        public DbSet<Question> Questions { set; get; }
+        public DbSet<Intent> Intents { get; set; }
+        public DbSet<Answer> Answers { get; set; }
+        public DbSet<Question> Questions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

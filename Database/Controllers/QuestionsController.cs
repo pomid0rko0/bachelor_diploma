@@ -24,86 +24,98 @@ namespace Database.Controllers
             _logger = logger;
         }
 
-#nullable enable
-        [HttpGet]
-        [ProducesResponseType(200)]
-        public ActionResult<IEnumerable<Question>> GetAll()
-        {
-            return _context.Questions.ToList();
-        }
-
         [HttpGet]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public ActionResult<IEnumerable<Question>> GetN([FromQuery] int size)
+        public ActionResult<IEnumerable<Question>> Get(
+            [FromQuery] int? size, 
+            [FromQuery] int? questionId, 
+            [FromQuery] string questionText, 
+            [FromQuery] int?[] intentIds, 
+            [FromQuery] string[] intentNames
+        )
         {
-            if (size < 1)
+            var N = size ?? _context.Questions.Count();
+            if (N < 0)
             {
-                return BadRequest("size can't be < 1");
+                return BadRequest("size can't be < 0");
             }
-            return _context.Questions.Take(Math.Min(size, _context.Questions.Count())).ToList();
-        }
-
-        [HttpGet("{intent}")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public ActionResult<IEnumerable<Question>> GetWithIntents([FromQuery] string[] intents)
-        {
-            if (intents.Count() < 1)
-            {
-                return BadRequest("At least 1 intent required");
-            }
-            return _context.Questions
-                .Where(q => q.Intents.Any(intent => intents.Contains(intent.Name)))
+            return _context
+                .Questions
+                .Where(q => (questionId == null && 
+                             questionText == null && 
+                             intentNames == null && 
+                             intentIds == null
+                            ) || 
+                            q.QuestionText == questionText || 
+                            q.Intent.Where(
+                                Intent => intentIds == null || intentIds.Contains(Intent.IntentId) ||
+                                          intentNames == null || intentNames.Contains(Intent.IntentName)
+                            ).Take(1).Count() > 0
+                      )
+                .Take(N)
                 .ToList();
         }
-
+        
         [HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Question> Post(string[] intents, string text)
+        public ActionResult<Question> Post(string questionText, string[] intentNames)
         {
-            bool alreadyExists = _context.Questions.Any(q => q.Text == text);
-            if (alreadyExists) return BadRequest("Such question already exists");
-            var realIntents = _context.Intents.Where(intent => intents.Contains(intent.Name));
-            var difference = intents.Where(intent => realIntents.All(i => i.Name != intent));
-            if (difference.Count() > 0) return NotFound("Theres is not existing intents");
-            var question = new Question
+            if (intentNames.Take(1).Count() == 0)
             {
-                Intents = realIntents.ToList(),
-                Text = text
+                return BadRequest("At least one intent required");
+            }
+            bool alreadyExists = _context.Questions.Any(a => a.QuestionText == questionText);
+            if (alreadyExists) return BadRequest("Question already exists");
+            var Intents = _context.Intents.Where(Intent => intentNames.Contains(Intent.IntentName));
+            if (intentNames.Any(intentName => !Intents.Select(Intent => Intent.IntentName).Contains(intentName)))
+            {
+                return NotFound("Some intents does not exists");
+            }
+            var Question = new Question
+            {
+                Intent = Intents.ToList(),
+                QuestionText = questionText
             };
-            var q = _context.Questions.Add(question).Entity;
-            foreach (var intent in realIntents)
+            _context.Questions.Add(Question);
+            _context.SaveChanges();
+
+            foreach (var Intent in Intents)
             {
-                intent.Questions.Add(q);
+                Intent.Question ??= new List<Question>();
+                Intent.Question.Add(Question);
             }
             _context.SaveChanges();
-            return q;
+            
+            return Question;
         }
 
         [HttpDelete]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Question> Delete(string text)
+        public ActionResult<Question> Delete(int questionId)
         {
-            Question? question = null;
+            Question Question = null;
             try
             {
-                question = _context.Questions.Single(q => q.Text == text);
+                Question = _context.Questions.Single(q => q.QuestionId == questionId);
             }
             catch (Exception)
             {
                 return BadRequest("Question not found");
             }
-            _context.Questions.Remove(question);
-            foreach (var intent in _context.Intents)
+
+            foreach (var Intent in Question.Intent)
             {
-                intent.Questions.Remove(question);
+                Intent.Question.Remove(Question);
             }
             _context.SaveChanges();
-            return question;
+
+            _context.Questions.Remove(Question);
+            _context.SaveChanges();
+            return Question;
         }
     }
 }

@@ -24,91 +24,96 @@ namespace Database.Controllers
             _logger = logger;
         }
 
-#nullable enable
-        [HttpGet]
-        [ProducesResponseType(200)]
-        public ActionResult<IEnumerable<Answer>> GetAll()
-        {
-            return _context.Answers.ToList();
-        }
-
         [HttpGet]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public ActionResult<IEnumerable<Answer>> GetN([FromQuery] int size)
+        public ActionResult<IEnumerable<Answer>> Get(
+            [FromQuery] int? size, 
+            [FromQuery] int? answerId, 
+            [FromQuery] string answerText, 
+            [FromQuery] int?[] intentIds, 
+            [FromQuery] string[] intentNames
+        )
         {
-            if (size < 1)
+            var N = size ?? _context.Answers.Count();
+            if (N < 0)
             {
-                return BadRequest("size can't be < 1");
+                return BadRequest("size can't be < 0");
             }
-            return _context.Answers.Take(Math.Min(size, _context.Answers.Count())).ToList();
-        }
-
-        [HttpGet("{intent}")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public ActionResult<Answer> GetByIntent([FromQuery] string intent)
-        {
-            try
-            {
-                return _context.Answers.Single(a => a.Intent.Name == intent);
-            }
-            catch (Exception)
-            {
-                return NotFound("Answer with such intent not found");
-            }
+            return _context
+                .Answers
+                .Where(a => (answerId == null && 
+                             answerText == null && 
+                             intentNames == null && 
+                             intentIds == null
+                            ) || 
+                            a.AnswerText == answerText || 
+                            (intentIds != null && intentIds.Contains(a.Intent.IntentId)) ||
+                            (intentNames != null && intentNames.Contains(a.Intent.IntentName))
+                      )
+                .Take(N)
+                .ToList();
         }
 
         [HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> Post(string intent, string text)
+        public ActionResult<Answer> Post([Required] string answerText, [Required] string intentName)
         {
-            bool alreadyExists = _context.Answers.Any(a => a.Text == text || a.Intent.Name == intent);
-            if (alreadyExists) return BadRequest("Such answer already exists");
-            Intent? realIntent = null;
+            bool alreadyExists = _context.Answers.Any(a => a.AnswerText == answerText ||
+                                                           a.Intent.IntentName == intentName
+                                                     );
+            if (alreadyExists)
+            {
+                return BadRequest("Answer already exists");
+            }
+            Intent Intent = null;
             try
             {
-                realIntent = _context.Intents.Single(i => i.Name != intent);
+                Intent = _context.Intents.Single(i => i.IntentName == intentName);
             }
             catch (Exception)
             {
                 return NotFound("Intent not found");
             }
-            var answer = new Answer
+            Answer Answer = new Answer
             {
-                Intent = realIntent,
-                Text = text
+                AnswerText = answerText,
+                IntentId = Intent.IntentId,
+                Intent = Intent,
             };
-            var a = _context.Answers.Add(answer).Entity;
-            realIntent.Answers.Add(a);
+
+            _context.Answers.Add(Answer);
             _context.SaveChanges();
-            return a;
+
+            Intent.AnswerId = Answer.AnswerId;
+            Intent.Answer = Answer;
+            _context.SaveChanges();
+            return Intent.Answer;
         }
 
         [HttpDelete]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> Delete(string? text, string? intent)
+        public ActionResult<Answer> Delete(int answerId)
         {
-            if (text == null || intent == null)
-            {
-                return BadRequest("At least one text or intent must be defined");
-            }
-            Answer? answer = null;
+            Answer Answer = null;
             try
             {
-                answer = _context.Answers.Single(a => a.Text == text || a.Intent.Name == intent);
+                Answer = _context.Answers.Single(a => a.AnswerId == answerId);
             }
             catch (Exception)
             {
                 return BadRequest("Answer not found");
             }
-            _context.Answers.Remove(answer);
-            answer.Intent.Answers.Remove(answer);
+            Answer.Intent.AnswerId = null;
+            Answer.Intent.Answer = null;
             _context.SaveChanges();
-            return answer;
+
+            _context.Answers.Remove(Answer);
+            _context.SaveChanges();
+            return Answer;
         }
     }
 }
