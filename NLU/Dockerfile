@@ -4,6 +4,8 @@ WORKDIR /app/NLU
 
 USER root
 
+EXPOSE 5005
+
 RUN if [ ! -d ./models ]; then mkdir ./models; fi
 
 RUN apt-get update && \
@@ -30,4 +32,6 @@ COPY ./config.yml ./config.yml
 COPY ./domain.yml ./domain.yml
 COPY ./data ./data
 
-EXPOSE 5005
+RUN rasa train nlu
+
+CMD [ "run", "--enable-api" ]
