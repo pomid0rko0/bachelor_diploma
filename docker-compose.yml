@@ -6,17 +6,15 @@ services:
       - "5432"
     restart: always
     volumes:
-      - chatbot:/var/lib/postgresql/data
+      - chatbot:/app/Database/pgdata
     environment:
       POSTGRES_USER: NSTUChatbot
       POSTGRES_PASSWORD: NSTUChatbot
       POSTGRES_DB: NSTUChatbotDatabase
+      PGDATA: /app/Database/pgdata
 
   chatbotapi:
     image: chatbotapi:latest
-    depends_on:
-      - run_nlu
-      - postgres
     environment:
       migrateOnStartup: "true"
     build: ./Database
