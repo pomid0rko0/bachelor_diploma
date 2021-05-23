@@ -27,6 +27,8 @@ services:
     volumes:
       - chatbot:/app/NLU/data
       - chatbot:/app/NLU/models
+    environment:
+      PGDATA: /app/NLU/pgdata
     command: train nlu
 
   run_nlu:
@@ -35,6 +37,8 @@ services:
     volumes:
       - chatbot:/app/NLU/data
       - chatbot:/app/NLU/models
+    environment:
+      PGDATA: /app/NLU/pgdata
     ports:
       - 5005:5005
     command: run --enable-api
