@@ -21,14 +21,16 @@ namespace Database
             var host = CreateHostBuilder(args).Build();
 
             bool migrateOnStartup = Boolean.Parse(Environment.GetEnvironmentVariable("migrateOnStartup") ?? "false");
-            if (migrateOnStartup) 
+            if (migrateOnStartup)
             {
                 using (var scope = host.Services.CreateScope())
                 {
                     var services = scope.ServiceProvider;
                     try
                     {
-                        services.GetRequiredService<QAContext>().Database.Migrate();
+                        var Database = services.GetRequiredService<QAContext>().Database;
+                        while (!Database.CanConnect()) ;
+                        Database.Migrate();
                     }
                     catch (Exception ex)
                     {
