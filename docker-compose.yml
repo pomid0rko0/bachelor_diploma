@@ -6,6 +6,8 @@ services:
       - "5432"
     restart: always
     volumes:
+      - chatbot:/app/NLU/data
+      - chatbot:/app/NLU/models
       - chatbot:/app/Database/pgdata
     environment:
       POSTGRES_USER: NSTUChatbot

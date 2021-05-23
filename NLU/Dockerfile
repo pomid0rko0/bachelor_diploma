@@ -2,10 +2,6 @@ FROM rasa/rasa:2.6.2
 
 WORKDIR /app/NLU
 
-COPY ./config.yml ./config.yml
-COPY ./domain.yml ./domain.yml
-COPY ./data ./data
-
 USER root
 
 RUN if [ ! -d ./models ]; then mkdir ./models; fi
@@ -29,5 +25,9 @@ RUN apt-get update && \
     python3-pip && \
     pip3 install -U pip && \
     pip3 install rasa
+
+COPY ./config.yml ./config.yml
+COPY ./domain.yml ./domain.yml
+COPY ./data ./data
 
 EXPOSE 5005
