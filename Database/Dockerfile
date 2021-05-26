@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app/Database
 EXPOSE 8000
 
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV ASPNETCORE_URLS=http://+:8000
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app/Database folder
