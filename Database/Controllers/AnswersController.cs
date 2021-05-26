@@ -1,119 +1,134 @@
 using System;
-using System.Text.Encodings;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
-using System.ComponentModel.DataAnnotations;
 
 namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AnswersController : ControllerBase
+    public class AnswersController : Selector<Answer>
     {
-        private readonly ILogger<AnswersController> _logger;
-        private readonly QAContext _context;
 
-        public AnswersController(QAContext context, ILogger<AnswersController> logger)
+        public AnswersController(QAContext context, ILogger<IntentsController> logger)
+            : base(context, logger)
         {
-            _context = context;
-            _logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet("get/id")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public ActionResult<IEnumerable<Answer>> Get(
-            [FromQuery] int? size, 
-            [FromQuery] int? answerId, 
-            [FromQuery] string answerText, 
-            [FromQuery] int?[] intentIds, 
-            [FromQuery] string[] intentNames
-        )
+        [ProducesResponseType(404)]
+        public ActionResult<int> GetAnswerId([Required, FromQuery] string answerText)
         {
-            var N = size ?? _context.Answers.Count();
-            if (N < 0)
+            try
             {
-                return BadRequest("size can't be < 0");
+                return Select().First(a => a.AnswerText == answerText).AnswerId;
             }
-            return _context
-                .Answers
-                .Where(a => (answerId == null && 
-                             answerText == null && 
-                             intentNames == null && 
-                             intentIds == null
-                            ) || 
-                            a.AnswerText == answerText || 
-                            (intentIds != null && intentIds.Contains(a.Intent.IntentId)) ||
-                            (intentNames != null && intentNames.Contains(a.Intent.IntentName))
-                      )
-                .Take(N)
-                .ToList();
+            catch (Exception)
+            {
+                return NotFound("Answer not found");
+            }
         }
 
-        [HttpPost]
+        [HttpGet("get/{answerId}/text")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<string> GetAnswerText(int answerId)
+        {
+            try
+            {
+                return Select().First(answer => answer.AnswerId == answerId).AnswerText;
+            }
+            catch (Exception)
+            {
+                return NotFound("Answer not found");
+            }
+        }
+
+        [HttpGet("get/{answerId}/intent")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<Intent> GetAnswerIntent(int answerId)
+        {
+            try
+            {
+                return Select()
+                    .Include(a => a.Intent)
+                    .First(answer => answer.AnswerId == answerId)
+                    .Intent;
+            }
+            catch (Exception)
+            {
+                return NotFound("Answer not found");
+            }
+        }
+
+        [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> Post([Required] string answerText, [Required] string intentName)
+        public ActionResult<Answer> Post([Required] string answerText, [Required] int intentId)
         {
-            bool alreadyExists = _context.Answers.Any(a => a.AnswerText == answerText ||
-                                                           a.Intent.IntentName == intentName
-                                                     );
+            bool alreadyExists = Select().Any(a => answerText == a.AnswerText || intentId == a.IntentId);
             if (alreadyExists)
             {
                 return BadRequest("Answer already exists");
             }
-            Intent Intent = null;
+            Intent intent = null;
             try
             {
-                Intent = _context.Intents.Single(i => i.IntentName == intentName);
+                intent = _context
+                    .Intents
+                    .Include(i => i.Answer)
+                    .First(i => intentId == i.IntentId);
             }
             catch (Exception)
             {
                 return NotFound("Intent not found");
             }
-            Answer Answer = new Answer
+            var answer = new Answer
             {
                 AnswerText = answerText,
-                IntentId = Intent.IntentId,
-                Intent = Intent,
+                IntentId = intentId,
+                Intent = intent
             };
-
-            _context.Answers.Add(Answer);
+            _context.Answers.Add(answer);
             _context.SaveChanges();
-
-            Intent.AnswerId = Answer.AnswerId;
-            Intent.Answer = Answer;
+            intent.AnswerId = answer.AnswerId;
+            intent.Answer = answer;
             _context.SaveChanges();
-            return Intent.Answer;
+            return answer;
         }
 
-        [HttpDelete]
+        [HttpDelete("delete/{answerId}")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> Delete(int answerId)
+        public ActionResult<Answer> DeleteById(int answerId)
         {
-            Answer Answer = null;
-            try
+            Answer answer = null;
+            try 
             {
-                Answer = _context.Answers.Single(a => a.AnswerId == answerId);
+                answer = Select()
+                    .Include(a => a.Intent)
+                    .First(a => answerId == a.AnswerId);
             }
             catch (Exception)
             {
-                return BadRequest("Answer not found");
+                return NotFound("Answer not found");
             }
-            Answer.Intent.AnswerId = null;
-            Answer.Intent.Answer = null;
+            _context.Answers.Remove(answer);
             _context.SaveChanges();
-
-            _context.Answers.Remove(Answer);
+            answer.Intent.AnswerId = null;
+            answer.Intent.Answer = null;
             _context.SaveChanges();
-            return Answer;
+            return answer;
         }
     }
 }

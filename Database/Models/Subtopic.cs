@@ -4,18 +4,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Database.Models
 {
-    public class Intent
+    public class Subtopic
     {
         [Key]
-        public int IntentId { get; set; }
+        public int SubtopicId { get; set; }
         [Required]
-        public string IntentName { get; set; }
-
-        [ForeignKey("Answer")]
-        public int? AnswerId { get; set; }
-        public virtual Answer Answer { get; set; }
-        
+        public string SubtopicText { get; set; }
+        [Required, ForeignKey("Topic")]
+        public int TopicId { get; set; }
+        public virtual Topic Topic { get; set; }
         public virtual ICollection<Question> Question { get; set; }
-
     }
 }

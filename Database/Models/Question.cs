@@ -10,6 +10,9 @@ namespace Database.Models
         public int QuestionId { get; set; }
         [Required]
         public string QuestionText { get; set; }
+        [ForeignKey("Subtopic")]
+        public int? SubtopicId { get; set; }
+        public virtual Subtopic Subtopic { get; set; }
         public virtual ICollection<Intent> Intent { get; set; }
     }
 }

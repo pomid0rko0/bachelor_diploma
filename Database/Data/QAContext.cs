@@ -11,6 +11,8 @@ namespace Database.Data
         }
         public DbSet<Intent> Intents { get; set; }
         public DbSet<Answer> Answers { get; set; }
+        public DbSet<Topic> Topics { get; set; }
+        public DbSet<Subtopic> Subtopics { get; set; }
         public DbSet<Question> Questions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

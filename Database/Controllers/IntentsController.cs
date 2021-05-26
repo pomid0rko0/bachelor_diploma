@@ -1,9 +1,11 @@
 using System;
-using System.Text.Encodings;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
@@ -12,91 +14,133 @@ namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class IntentsController : ControllerBase
+    public class IntentsController : Selector<Intent>
     {
-        private readonly ILogger<IntentsController> _logger;
-        private readonly QAContext _context;
-
         public IntentsController(QAContext context, ILogger<IntentsController> logger)
+            : base(context, logger)
         {
-            _context = context;
-            _logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet("get/{intentName}/id")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public ActionResult<IEnumerable<Intent>> Get(
-            [FromQuery] int? size, 
-            [FromQuery] int?[] intentIds, 
-            [FromQuery] string[] intentNames
-        )
+        [ProducesResponseType(404)]
+        public ActionResult<int> GetIntentId([Required, FromQuery] string intentName)
         {
-            var N = size ?? _context.Intents.Count();
-            if (N < 0)
+            try
             {
-                return BadRequest("size can't be < 0");
+                return Select().First(i => i.IntentName == intentName).IntentId;
             }
-            return _context
-                .Intents
-                .Where(i => (intentIds == null && intentNames == null) ||
-                             (intentIds != null && intentIds.Contains(i.IntentId)) ||
-                             (intentNames != null && intentNames.Contains(i.IntentName))
-                            )
-                .Take(N)
-                .ToList();
+            catch (Exception)
+            {
+                return NotFound("Intent not found");
+            }
         }
 
-        [HttpPost]
+        [HttpGet("get/{intentId}/name")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<string> GetIntentName(int intentId)
+        {
+            try
+            {
+                return Select().First(i => i.IntentId == intentId).IntentName;
+            }
+            catch (Exception)
+            {
+                return NotFound("Intent not found");
+            }
+        }
+
+        [HttpGet("get/{intentId}/answer")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<Answer> GetAnswer(int intentId)
+        {
+            try
+            {
+                return Select()
+                    .Include(i => i.Answer)
+                    .First(i => i.IntentId == intentId)
+                    .Answer;
+            }
+            catch (Exception)
+            {
+                return NotFound("Intent not found");
+            }
+        }
+
+        [HttpGet("get/{intentId}/questions")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<IEnumerable<Question>> GetQuestions(int intentId)
+        {
+            try
+            {
+                return Select()
+                    .Include(i => i.Question)
+                    .First(i => i.IntentId == intentId)
+                    .Question
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return NotFound("Intent not found");
+            }
+        }
+
+        [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public ActionResult<Intent> Post(string intentName)
+        public ActionResult<Intent> Post([Required] string intentName)
         {
-            if (String.IsNullOrWhiteSpace(intentName))
+            const string regexString = "[a-zA-Z_0-9]+";
+            if (!new Regex(regexString).IsMatch(intentName))
             {
-                return BadRequest("intentName must be defined");
+                return BadRequest("intentName must satisfy regular expression " + regexString);
             }
-            bool alreadyExists = _context.Intents.Any(i => intentName == i.IntentName);
+            bool alreadyExists = Select().Any(i => intentName == i.IntentName);
             if (alreadyExists)
             {
                 return BadRequest("Intent already exists");
             }
-            Intent Intent = new Intent
+            var intent = new Intent
             {
                 IntentName = intentName,
                 Question = new List<Question>()
             };
-            _context.Intents.Add(Intent);
+            _context.Intents.Add(intent);
             _context.SaveChanges();
-            return Intent;
+            return intent;
         }
 
-        [HttpDelete]
+        [HttpDelete("delete/{intentId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Intent> Delete(int intentId)
+        public ActionResult<Intent> DeleteById(int intentId)
         {
-            Intent Intent = null;
-            try
+            Intent intent = null;
+            try 
             {
-                Intent = _context.Intents.Single(i => i.IntentId == intentId);
+                intent = Select()
+                    .Include(i => i.Question.Take(1))
+                    .First(i => intentId == i.IntentId);
             }
             catch (Exception)
             {
-                return NotFound("intent not found");
+                return NotFound("Intent not found");
             }
-            if (Intent.Question != null && Intent.Question.Count() > 0)
+            if (intent.Question.Count() > 0)
             {
-                return BadRequest("Some questions depends on this intent");
+                return BadRequest("Intent depends on some questions");
             }
-            if (Intent.AnswerId != null)
+            if (intent.AnswerId != null)
             {
-                return BadRequest("Some answer depends on this intent");
+                return BadRequest("Intent depends on some answer");
             }
-            _context.Intents.Remove(Intent);
+            _context.Intents.Remove(intent);
             _context.SaveChanges();
-            return Intent;
+            return intent;
         }
     }
 }
