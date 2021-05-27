@@ -13,10 +13,10 @@ namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class SubtopicsController : Selector<Subtopic>
+    public class SubtopicsController : Selector<SubtopicsController, Subtopic>
     {
 
-        public SubtopicsController(QAContext context, ILogger<IntentsController> logger)
+        public SubtopicsController(QAContext context, ILogger<SubtopicsController> logger)
             : base(context, logger)
         {
         }

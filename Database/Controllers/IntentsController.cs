@@ -14,7 +14,7 @@ namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class IntentsController : Selector<Intent>
+    public class IntentsController : Selector<IntentsController, Intent>
     {
         public IntentsController(QAContext context, ILogger<IntentsController> logger)
             : base(context, logger)

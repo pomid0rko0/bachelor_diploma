@@ -10,10 +10,11 @@ using Database.Data;
 
 namespace Database.Controllers
 {
-    public class Selector<M> : ControllerBase
+    public class Selector<C, M> : ControllerBase
     where M : class
+    where C : ControllerBase
     {
-        protected readonly ILogger<IntentsController> _logger;
+        protected readonly ILogger<C> _logger;
         protected readonly QAContext _context;
 
         protected IQueryable<M> Select()
@@ -30,7 +31,7 @@ namespace Database.Controllers
             return Select().Skip(offset).Take(size).ToList();
         }
         
-        public Selector(QAContext context, ILogger<IntentsController> logger)
+        public Selector(QAContext context, ILogger<C> logger)
         {
             _context = context;
             _logger = logger;

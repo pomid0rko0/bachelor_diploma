@@ -13,10 +13,10 @@ namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AnswersController : Selector<Answer>
+    public class AnswersController : Selector<AnswersController, Answer>
     {
 
-        public AnswersController(QAContext context, ILogger<IntentsController> logger)
+        public AnswersController(QAContext context, ILogger<AnswersController> logger)
             : base(context, logger)
         {
         }
