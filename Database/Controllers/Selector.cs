@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
@@ -21,6 +21,15 @@ namespace Database.Controllers
             return _context.Set<M>();
         }
 
+        [HttpGet("get/all")]
+        public ActionResult<IEnumerable<M>> GetAll(
+            [Required, Range(0, Int32.MaxValue)] int offset = 0,
+            [Required, Range(0, 1000)] int size = 1000
+        )
+        {
+            return Select().Skip(offset).Take(size).ToList();
+        }
+        
         public Selector(QAContext context, ILogger<IntentsController> logger)
         {
             _context = context;
