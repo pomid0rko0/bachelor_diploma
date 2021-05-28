@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Database.Models.QA
 {
-    public class Subtopic
+    public class Subtopic : Entity
     {
-        [Key]
-        public int SubtopicId { get; set; }
-        [Required]
-        public string SubtopicText { get; set; }
         [Required, ForeignKey("Topic")]
         public int TopicId { get; set; }
         public virtual Topic Topic { get; set; }

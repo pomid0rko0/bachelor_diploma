@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Database.Models.QA
 {
-    public class Intent
+    public class Intent : Entity
     {
-        [Key]
-        public int IntentId { get; set; }
-        [Required]
-        public string IntentName { get; set; }
 
         [ForeignKey("Answer")]
         public int? AnswerId { get; set; }

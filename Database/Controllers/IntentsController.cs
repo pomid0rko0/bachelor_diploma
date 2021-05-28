@@ -14,54 +14,25 @@ namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class IntentsController : Selector<IntentsController, Intent>
+    public class IntentsController : EntitiesController<IntentsController, Intent>
     {
         public IntentsController(QAContext context, ILogger<IntentsController> logger)
             : base(context, logger)
         {
         }
-
-        [HttpGet("get/{intentName}/id")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public ActionResult<int> GetIntentId([Required, FromQuery] string intentName)
-        {
-            try
-            {
-                return Select().First(i => i.IntentName == intentName).IntentId;
-            }
-            catch (Exception)
-            {
-                return NotFound("Intent not found");
-            }
-        }
-
-        [HttpGet("get/{intentId}/name")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public ActionResult<string> GetIntentName(int intentId)
-        {
-            try
-            {
-                return Select().First(i => i.IntentId == intentId).IntentName;
-            }
-            catch (Exception)
-            {
-                return NotFound("Intent not found");
-            }
-        }
-
+ 
         [HttpGet("get/{intentId}/answer")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Answer> GetAnswer(int intentId)
+        public ActionResult<Entity> GetAnswer(int intentId)
         {
             try
             {
-                return Select()
+                var a = Select()
                     .Include(i => i.Answer)
-                    .First(i => i.IntentId == intentId)
+                    .First(i => i.Id == intentId)
                     .Answer;
+                return new Entity { Id = a.Id, Value = a.Value };
             }
             catch (Exception)
             {
@@ -72,14 +43,15 @@ namespace Database.Controllers
         [HttpGet("get/{intentId}/questions")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Question>> GetQuestions(int intentId)
+        public ActionResult<IEnumerable<Entity>> GetQuestions(int intentId)
         {
             try
             {
                 return Select()
                     .Include(i => i.Question)
-                    .First(i => i.IntentId == intentId)
+                    .First(i => i.Id == intentId)
                     .Question
+                    .Select(q => new Entity { Id = q.Id, Value = q.Value })
                     .ToList();
             }
             catch (Exception)
@@ -91,40 +63,40 @@ namespace Database.Controllers
         [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public ActionResult<Intent> Post([Required] string intentName)
+        public ActionResult<Entity> Post([Required] string intentName)
         {
             const string regexString = "[a-zA-Z_0-9]+";
             if (!new Regex(regexString).IsMatch(intentName))
             {
                 return BadRequest("intentName must satisfy regular expression " + regexString);
             }
-            bool alreadyExists = Select().Any(i => intentName == i.IntentName);
+            bool alreadyExists = Select().Any(i => intentName == i.Value);
             if (alreadyExists)
             {
                 return BadRequest("Intent already exists");
             }
             var intent = new Intent
             {
-                IntentName = intentName,
+                Value = intentName,
                 Question = new List<Question>()
             };
             _context.Intents.Add(intent);
             _context.SaveChanges();
-            return intent;
+            return new Entity { Id = intent.Id, Value = intent.Value };
         }
 
         [HttpDelete("delete/{intentId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Intent> DeleteById(int intentId)
+        public ActionResult<Entity> Delete(int intentId)
         {
             Intent intent = null;
             try 
             {
                 intent = Select()
                     .Include(i => i.Question.Take(1))
-                    .First(i => intentId == i.IntentId);
+                    .First(i => intentId == i.Id);
             }
             catch (Exception)
             {
@@ -140,7 +112,7 @@ namespace Database.Controllers
             }
             _context.Intents.Remove(intent);
             _context.SaveChanges();
-            return intent;
+            return new Entity { Id = intent.Id, Value = intent.Value };
         }
     }
 }

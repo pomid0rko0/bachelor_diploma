@@ -3,12 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Database.Models.QA
 {
-    public class Answer
+    public class Answer : Entity
     {
-        [Key]
-        public int AnswerId { get; set; }
-        [Required]
-        public string AnswerText { get; set; }
 
         [Required, ForeignKey("Intent")]
         public int IntentId { get; set; }

@@ -3,12 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Database.Models.QA
 {
-    public class Topic
+    public class Topic : Entity
     {
-        [Key]
-        public int TopicId { get; set; }
-        [Required]
-        public string TopicText { get; set; }
         public virtual ICollection<Subtopic> Subtopic { get; set; }
     }
 }

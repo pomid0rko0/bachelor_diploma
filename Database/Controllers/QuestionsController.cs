@@ -13,7 +13,7 @@ namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class QuestionsController : Selector<QuestionsController, Question>
+    public class QuestionsController : EntitiesController<QuestionsController, Question>
     {
 
         public QuestionsController(QAContext context, ILogger<QuestionsController> logger)
@@ -21,46 +21,16 @@ namespace Database.Controllers
         {
         }
 
-        [HttpGet("get/id")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public ActionResult<int> GetQuestionId([Required, FromQuery] string questionText)
-        {
-            try
-            {
-                return Select().First(q => q.QuestionText == questionText).QuestionId;
-            }
-            catch (Exception)
-            {
-                return NotFound("Question not found");
-            }
-        }
-
-        [HttpGet("get/{questionId}/text")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public ActionResult<string> GetQuestionText(int questionId)
-        {
-            try
-            {
-                return Select().First(q => q.QuestionId == questionId).QuestionText;
-            }
-            catch (Exception)
-            {
-                return NotFound("Question not found");
-            }
-        }
-
         [HttpGet("get/{questionId}/subtopic")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Subtopic> GetQuestionSubtopic(int questionId)
+        public ActionResult<Entity> GetQuestionSubtopic(int questionId)
         {
             try
             {
                 return Select()
                     .Include(q => q.Subtopic)
-                    .First(q => q.SubtopicId == questionId)
+                    .First(q => q.Id == questionId)
                     .Subtopic;
             }
             catch (Exception)
@@ -72,14 +42,15 @@ namespace Database.Controllers
         [HttpGet("get/{questionId}/intents")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Intent>> GetQuestionIntents(int questionId)
+        public ActionResult<IEnumerable<Entity>> GetQuestionIntents(int questionId)
         {
             try
             {
                 return Select()
                     .Include(q => q.Intent)
-                    .First(q => q.QuestionId == questionId)
+                    .First(q => q.Id == questionId)
                     .Intent
+                    .Select(i => new Entity { Id = i.Id, Value = i.Value })
                     .ToList();
             }
             catch (Exception)
@@ -92,13 +63,13 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Question> Post(
+        public ActionResult<Entity> Post(
             [Required] string questionText, 
             [Required] int[] intentIds,
             int? subtopicId
         )
         {
-            bool alreadyExists = Select().Any(q => questionText == q.QuestionText);
+            bool alreadyExists = Select().Any(q => questionText == q.Value);
             if (alreadyExists)
             {
                 return BadRequest("Question already exists");
@@ -111,7 +82,7 @@ namespace Database.Controllers
                     subtopic = _context
                         .Subtopics
                         .Include(st => st.Question)
-                        .First(subtopic => subtopicId == subtopic.SubtopicId);
+                        .First(subtopic => subtopicId == subtopic.Id);
                 }
                 catch (Exception)
                 {
@@ -121,14 +92,14 @@ namespace Database.Controllers
             var intents = _context
                 .Intents
                 .Include(i => i.Question)
-                .Where(i => intentIds.Contains(i.IntentId));
-            if (intentIds.Any(intentId => !intents.Select(Intent => Intent.IntentId).Contains(intentId)))
+                .Where(i => intentIds.Contains(i.Id));
+            if (intentIds.Any(intentId => !intents.Select(Intent => Intent.Id).Contains(intentId)))
             {
                 return NotFound("Some intents not found");
             }
             var question = new Question
             {
-                QuestionText = questionText,
+                Value = questionText,
                 SubtopicId = subtopicId,
                 Subtopic = subtopic,
                 Intent = intents.ToList()
@@ -144,21 +115,21 @@ namespace Database.Controllers
                 subtopic.Question.Add(question);
                 _context.SaveChanges();
             }
-            return question;
+            return new Entity { Id = question.Id, Value = question.Value };
         }
 
         [HttpDelete("delete/{questionId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Question> DeleteById(int questionId)
+        public ActionResult<Entity> Delete(int questionId)
         {
             Question question = null;
             try 
             {
                 question = Select()
                     .Include(q => q.Intent)
-                    .First(q => questionId == q.QuestionId);
+                    .First(q => questionId == q.Id);
             }
             catch (Exception)
             {
@@ -171,7 +142,7 @@ namespace Database.Controllers
                 intent.Question.Remove(question);
             }
             _context.SaveChanges();
-            return question;
+            return new Entity { Id = question.Id, Value = question.Value };
         }
     }
 }
