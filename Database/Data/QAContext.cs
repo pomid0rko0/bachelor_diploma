@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Database.Models;
+using Database.Models.QA;
 
 namespace Database.Data
 {

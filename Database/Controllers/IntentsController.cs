@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
-using Database.Models;
+using Database.Models.QA;
 
 namespace Database.Controllers
 {

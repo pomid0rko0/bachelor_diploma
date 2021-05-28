@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Database.Models
+namespace Database.Models.QA
 {
     public class Topic
     {
