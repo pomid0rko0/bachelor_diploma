@@ -14,6 +14,8 @@ services:
     image: chatbotapi:latest
     environment:
       migrateOnStartup: "true"
+      NLU_HOST: nlu
+      NLU_PORT: "5005"
     depends_on:
       - postgres
     build: ./Database
@@ -25,6 +27,13 @@ services:
     build: ./NLU
     volumes:
       - nlu:/app/NLU/models
+    environment:
+      APP_FOLDER: /app/NLU
+      DATA_FOLDER: data
+      MODELS_FOLDER: models
+      SPELLING_ALPHABET_FILE: alhabet_ru.txt
+      SPELLING_DATASET_FILE: dialogues.txt
+      SPELLING_MODEL_FILE: ru_nstu_chatbot.bin
     ports:
       - 5005:5005
 

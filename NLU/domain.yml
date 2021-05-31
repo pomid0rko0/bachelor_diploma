@@ -2,7 +2,11 @@ version: "2.0"
 
 intents:
   - documents
-  - documents_how
-  - documents_list
-  - documents_contract
-  - documents_agreement
+  - maindates
+
+responses:
+  utter_ask_rephrase:
+    - text: Простите, не понял ваш вопрос. Пожалуйста, попробуйте его переформулировать.
+
+  utter_default:
+    - text: Простите, ничем не могу помочь. Попробуйте задать вопрос напрямую членам приёмной комисии нажав на соответствующую кнопку.
