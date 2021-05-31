@@ -30,12 +30,13 @@ FROM ubuntu:21.10 as lang
 
 ENV DATA_FOLDER data
 ENV MODELS_FOLDER models
+ENV SPELLING_ARCHIVE_FILE dialogues.zip
 ENV SPELLING_ALPHABET_FILE alhabet_ru.txt
 ENV SPELLING_DATASET_FILE dialogues.txt
 ENV SPELLING_MODEL_FILE ru_nstu_chatbot.bin
 
 RUN apt-get update 
-RUN apt-get install -y locales 
+RUN apt-get install -y locales p7zip-full p7zip-rar
 RUN rm -rf /var/lib/apt/lists/* 
 RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
@@ -52,8 +53,8 @@ FROM lang as jamspell_train
 
 WORKDIR /JamSpell
 COPY --from=jamspell_build /JamSpell/build/main/jamspell ./jamspell
-COPY data/${SPELLING_ALPHABET_FILE} ${SPELLING_ALPHABET_FILE}
-COPY data/${SPELLING_DATASET_FILE} ${SPELLING_DATASET_FILE}
+COPY ${DATA_FOLDER}/${SPELLING_ARCHIVE_FILE} ${SPELLING_ARCHIVE_FILE}
+RUN 7za x ${SPELLING_ARCHIVE_FILE}
 RUN ./jamspell train ${SPELLING_ALPHABET_FILE} ${SPELLING_DATASET_FILE} ${SPELLING_MODEL_FILE}
 
 FROM rasa_build as rasa_train
