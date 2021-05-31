@@ -1,5 +1,6 @@
 FROM rasa/rasa:2.6.3 as base
 
+ENV RASA_TELEMETRY_ENABLED=false
 ENV APP_FOLDER /app/NLU
 ENV DATA_FOLDER data
 ENV MODELS_FOLDER models
