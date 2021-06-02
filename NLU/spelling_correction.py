@@ -47,7 +47,7 @@ class SpellingCorrector(Component):
         super().__init__(component_config)
         self.corrector = jamspell.TSpellCorrector()
         MODELS_FOLDER = os.environ["MODELS_FOLDER"]
-        SPELLING_MODEL_FILE = os.environ["MODELS_FOLDER"]
+        SPELLING_MODEL_FILE = os.environ["SPELLING_MODEL_FILE"]
         model_file_path = os.path.join(MODELS_FOLDER, SPELLING_MODEL_FILE)
         self.corrector.LoadLangModel(model_file_path)
 

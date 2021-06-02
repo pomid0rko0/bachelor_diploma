@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
-using Database.Models.QA;
+using Database.Models;
 
 namespace Database.Controllers
 {
@@ -64,7 +64,7 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Post([Required] string subtopicText, [Required] int topicId)
+        public ActionResult<Entity> Post([FromBody, Required] string subtopicText, [Required] int topicId)
         {
             bool alreadyExists = Select().Any(st => subtopicText == st.Value);
             if (alreadyExists)

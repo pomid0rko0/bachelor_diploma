@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -7,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
-using Database.Models.QA;
+using Database.Models;
 
 namespace Database.Controllers
 {
@@ -39,19 +38,18 @@ namespace Database.Controllers
             }
         }
 
-        [HttpGet("get/{questionId}/intents")]
+        [HttpGet("get/{questionId}/answer")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Entity>> GetQuestionIntents(int questionId)
+        public ActionResult<Entity> GetQuestionAnswer(int questionId)
         {
             try
             {
-                return Select()
-                    .Include(q => q.Intent)
+                var a = Select()
+                    .Include(q => q.Answer)
                     .First(q => q.Id == questionId)
-                    .Intent
-                    .Select(i => new Entity { Id = i.Id, Value = i.Value })
-                    .ToList();
+                    .Answer;
+                return new Entity { Id = a.Id, Value = a.Value };
             }
             catch (Exception)
             {
@@ -64,57 +62,55 @@ namespace Database.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         public ActionResult<Entity> Post(
-            [Required] string questionText, 
-            [Required] int[] intentIds,
-            int? subtopicId
+            [FromBody, Required] string questionText, 
+            [Required] int answerId,
+            [Required] int subtopicId,
+            bool? isExample = true
         )
         {
+            bool isEx = isExample ?? true;
             bool alreadyExists = Select().Any(q => questionText == q.Value);
             if (alreadyExists)
             {
                 return BadRequest("Question already exists");
             }
             Subtopic subtopic = null;
-            if (subtopicId != null)
+            try
             {
-                try
-                {
-                    subtopic = _context
-                        .Subtopics
-                        .Include(st => st.Question)
-                        .First(subtopic => subtopicId == subtopic.Id);
-                }
-                catch (Exception)
-                {
-                    return NotFound("Subtopic not found");
-                }
+                subtopic = _context
+                    .Subtopics
+                    .Include(st => st.Question)
+                    .First(subtopic => subtopicId == subtopic.Id);
             }
-            var intents = _context
-                .Intents
-                .Include(i => i.Question)
-                .Where(i => intentIds.Contains(i.Id));
-            if (intentIds.Any(intentId => !intents.Select(Intent => Intent.Id).Contains(intentId)))
+            catch (Exception)
             {
-                return NotFound("Some intents not found");
+                return NotFound("Subtopic not found");
+            }
+            Answer answer = null;
+            try
+            {
+                answer = _context
+                    .Answers
+                    .Include(a => a.Question)
+                    .First(a => a.Id == answerId);
+            }
+            catch (Exception)
+            {
+                return NotFound("Answer not found");
             }
             var question = new Question
             {
                 Value = questionText,
                 SubtopicId = subtopicId,
                 Subtopic = subtopic,
-                Intent = intents.ToList()
+                AnswerId = answerId,
+                Answer = answer
             };
             _context.Questions.Add(question);
             _context.SaveChanges();
-            foreach (var intent in intents)
-            {
-                intent.Question.Add(question);
-            }
-            if (subtopic != null)
-            {
-                subtopic.Question.Add(question);
-                _context.SaveChanges();
-            }
+            answer.Question.Add(question);
+            subtopic.Question.Add(question);
+            _context.SaveChanges();
             return new Entity { Id = question.Id, Value = question.Value };
         }
 
@@ -128,7 +124,7 @@ namespace Database.Controllers
             try 
             {
                 question = Select()
-                    .Include(q => q.Intent)
+                    .Include(q => q.Answer)
                     .First(q => questionId == q.Id);
             }
             catch (Exception)
@@ -137,10 +133,7 @@ namespace Database.Controllers
             }
             _context.Questions.Remove(question);
             _context.SaveChanges();
-            foreach (var intent in question.Intent)
-            {
-                intent.Question.Remove(question);
-            }
+            question.Answer.Question.Remove(question);
             _context.SaveChanges();
             return new Entity { Id = question.Id, Value = question.Value };
         }

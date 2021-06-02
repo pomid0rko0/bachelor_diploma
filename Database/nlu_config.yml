@@ -1,0 +1,34 @@
+language: ru
+
+pipeline:
+  - name: text_preprocessing.TextPreprocessor
+  - name: spelling_correction.SpellingCorrector
+  - name: WhitespaceTokenizer
+  - name: RegexFeaturizer
+  - name: CountVectorsFeaturizer
+  - name: CountVectorsFeaturizer
+    analyzer: char_wb
+    min_ngram: 1
+    max_ngram: 3
+  - name: DIETClassifier
+    epochs: 100
+  - name: FallbackClassifier
+    threshold: 0.7
+  - name: ResponseSelector
+    epochs: 100
+
+policies:
+  - name: RulePolicy
+
+rules:
+  - rule:  fallback
+    steps:
+      - intent: nlu_fallback
+      - action: action_two_stage_fallback
+      - active_loop: action_two_stage_fallback
+
+responses:
+  utter_ask_rephrase:
+    - text: Простите, не понял ваш вопрос. Пожалуйста, попробуйте его переформулировать.
+  utter_default:
+    - text: Простите, ничем не могу помочь. Попробуйте задать вопрос напрямую членам приёмной комисии нажав на соответствующую кнопку.

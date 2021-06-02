@@ -29,4 +29,5 @@ RUN dotnet publish "Database.csproj" -c Release -o /app/Database/publish
 FROM base AS final
 WORKDIR /app/Database
 COPY --from=publish /app/Database/publish .
+COPY nlu_config.yml nlu_config.yml
 ENTRYPOINT ["dotnet", "Database.dll"]

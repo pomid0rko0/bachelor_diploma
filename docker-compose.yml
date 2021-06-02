@@ -16,19 +16,24 @@ services:
       migrateOnStartup: "true"
       NLU_HOST: nlu
       NLU_PORT: "5005"
+      NLU_CONFIG_FILE: nlu_config.yml
     depends_on:
       - postgres
+      - nlu
+    env_file:
+      - .env
     build: ./Database
     ports:
-      - 5004:8000
+      - 8080:8000
 
   nlu:
     image: diploma_rasa_project
     build: ./NLU
     volumes:
-      - nlu:/app/NLU/models
+      - ./NLU/JamSpell:/JamSpell
+      - ./NLU/models:/app/NLU/models
     environment:
-      RASA_TELEMETRY_ENABLED: false
+      RASA_TELEMETRY_ENABLED: "false"
       APP_FOLDER: /app/NLU
       DATA_FOLDER: data
       MODELS_FOLDER: models
@@ -37,7 +42,7 @@ services:
       SPELLING_DATASET_FILE: dialogues.txt
       SPELLING_MODEL_FILE: ru_nstu_chatbot.bin
     ports:
-      - 5005:5005
-
+      - "5005"
+    
 volumes:
   nlu:

@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
-using Database.Models.QA;
+using Database.Models;
 
 namespace Database.Controllers
 {
@@ -21,58 +21,33 @@ namespace Database.Controllers
         {
         }
 
-        [HttpGet("get/{id}/intent")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public ActionResult<Entity> GetAnswerIntent(int id)
+        [HttpGet("get/{id}/questions")]
+        public ActionResult<IEnumerable<Question>> GetAnswerIntent(int id)
         {
-            try
-            {
-                var i = Select()
-                    .Include(a => a.Intent)
-                    .First(answer => answer.Id == id)
-                    .Intent;
-                return new Entity { Id = i.Id, Value = i.Value };
-            }
-            catch (Exception)
-            {
-                return NotFound("Answer not found");
-            }
+            return Select()
+                .Include(a => a.Question)
+                .First(answer => answer.Id == id)
+                .Question
+                .ToList();
         }
 
         [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Post([Required] string answerText, [Required] int intentId)
+        public ActionResult<Entity> Post([FromBody, Required] string answerText)
         {
-            bool alreadyExists = Select().Any(a => answerText == a.Value || intentId == a.IntentId);
+            bool alreadyExists = Select().Any(a => answerText.ToLower() == a.Value.ToLower());
             if (alreadyExists)
             {
                 return BadRequest("Answer already exists");
             }
-            Intent intent = null;
-            try
-            {
-                intent = _context
-                    .Intents
-                    .Include(i => i.Answer)
-                    .First(i => intentId == i.Id);
-            }
-            catch (Exception)
-            {
-                return NotFound("Intent not found");
-            }
             var answer = new Answer
             {
                 Value = answerText,
-                IntentId = intentId,
-                Intent = intent
+                Question = new List<Question>()
             };
             _context.Answers.Add(answer);
-            _context.SaveChanges();
-            intent.AnswerId = answer.Id;
-            intent.Answer = answer;
             _context.SaveChanges();
             return new Entity { Id = answer.Id, Value = answer.Value };
         }
@@ -87,17 +62,18 @@ namespace Database.Controllers
             try 
             {
                 answer = Select()
-                    .Include(a => a.Intent)
+                    .Include(a => a.Question)
                     .First(a => answerId == a.Id);
             }
             catch (Exception)
             {
                 return NotFound("Answer not found");
             }
+            if (answer.Question.Take(1).Count() > 0)
+            {
+                return BadRequest("Some questions depends on this answer");
+            }
             _context.Answers.Remove(answer);
-            _context.SaveChanges();
-            answer.Intent.AnswerId = null;
-            answer.Intent.Answer = null;
             _context.SaveChanges();
             return new Entity { Id = answer.Id, Value = answer.Value };
         }

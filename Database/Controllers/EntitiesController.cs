@@ -4,13 +4,16 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 using Database.Data;
-using Database.Models.QA;
+using Database.Models;
 
 namespace Database.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class EntitiesController<C, M> : ControllerBase
     where M : Entity
     where C : ControllerBase
@@ -31,11 +34,15 @@ namespace Database.Controllers
 
         [HttpGet("get/all")]
         public ActionResult<IEnumerable<Entity>> GetAll(
-            [Required, Range(0, Int32.MaxValue)] int offset = 0,
-            [Required, Range(0, 1000)] int size = 1000
+            [Range(0, Int32.MaxValue)] int? offset = 0,
+            [Range(0, 1000)] int? size = 1000
         )
         {
-            return Select().Skip(offset).Take(size).Select(e => new Entity { Id = e.Id, Value = e.Value }).ToList();
+            return Select()
+                .Skip(offset ?? 0)
+                .Take(size ?? 1000)
+                .Select(e => new Entity { Id = e.Id, Value = e.Value })
+                .ToList();
         }
         
 
@@ -46,7 +53,7 @@ namespace Database.Controllers
         {
             try
             {
-                var e = Select().Single(e => e.Id == id);
+                var e = Select().First(e => e.Id == id);
                 return new Entity { Id = e.Id, Value = e.Value };
             }
             catch
@@ -57,12 +64,60 @@ namespace Database.Controllers
         
         [HttpGet("find")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(400)]        
         [ProducesResponseType(404)]        
-        public ActionResult<Entity> Find([Required] string value)
+        public ActionResult<Entity> Find(
+            [Required] string value, 
+            [RegularExpression("part|full|regex")] string match_type = "part", 
+            bool? case_sensitivity = false
+        )
         {
+            var cs = case_sensitivity ?? false;
+            match_type ??= "part";
+            var string_comparsion = cs ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             try
             {
-                var e = Select().Single(e => e.Value == value);
+                Entity e;
+                switch (match_type.ToLower())
+                {
+                    case "part":
+                        e = Select().First(e => e.Value.Contains(value, string_comparsion));
+                        break;
+                    case "full":
+                        e = Select().First(e => e.Value.Equals(value, string_comparsion));
+                        break;
+                    case "regex":
+                        e = Select().First(e => Regex.IsMatch(e.Value, value, cs ? RegexOptions.IgnoreCase : RegexOptions.None));
+                        break;
+                    default:
+                        return BadRequest("match_type must be 'part' | 'full' | 'regex'");
+                }
+                return new Entity { Id = e.Id, Value = e.Value };
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPut("update")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public ActionResult<Entity> Update(
+            [FromBody, Required] string new_value,
+            [Required] int id
+        )
+        {
+            if (Select().Any(e => e.Value == new_value))
+            {
+                return BadRequest("Already exists");
+            }
+            try
+            {
+                var e = Select().First(e => e.Id == id);
+                e.Value = new_value;
+                _context.SaveChanges();
                 return new Entity { Id = e.Id, Value = e.Value };
             }
             catch
