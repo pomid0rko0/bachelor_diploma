@@ -24,13 +24,12 @@ services:
       - .env
     build: ./Database
     ports:
-      - 8080:8000
+      - 5005:8000
 
   nlu:
     image: diploma_rasa_project
     build: ./NLU
     volumes:
-      - ./NLU/JamSpell:/JamSpell
       - ./NLU/models:/app/NLU/models
     environment:
       RASA_TELEMETRY_ENABLED: "false"
