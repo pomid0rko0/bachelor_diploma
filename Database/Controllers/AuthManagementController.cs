@@ -179,7 +179,7 @@ namespace Database.Controllers
                 {
                     existingUser = await _userManager.FindByEmailAsync(user.Email);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     return NotFound();
                 }

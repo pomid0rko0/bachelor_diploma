@@ -25,7 +25,7 @@ namespace Database.Controllers
         {
             return _context.Set<M>().OrderBy(e => e.Id);
         }
-        
+
         public EntitiesController(QAContext context, ILogger<C> logger)
         {
             _context = context;
@@ -44,11 +44,11 @@ namespace Database.Controllers
                 .Select(e => new Entity { Id = e.Id, Value = e.Value })
                 .ToList();
         }
-        
+
 
         [HttpGet("get/{id}")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(404)]        
+        [ProducesResponseType(404)]
         public ActionResult<Entity> GetById([Required] int id)
         {
             try
@@ -61,14 +61,14 @@ namespace Database.Controllers
                 return NotFound();
             }
         }
-        
+
         [HttpGet("find")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]        
-        [ProducesResponseType(404)]        
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public ActionResult<Entity> Find(
-            [Required] string value, 
-            [RegularExpression("part|full|regex")] string match_type = "part", 
+            [Required] string value,
+            [RegularExpression("part|full|regex")] string match_type = "part",
             bool? case_sensitivity = false
         )
         {
@@ -100,14 +100,11 @@ namespace Database.Controllers
             }
         }
 
-        [HttpPut("update")]
+        [HttpPut("update/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Update(
-            [FromBody, Required] string new_value,
-            [Required] int id
-        )
+        public ActionResult<Entity> Update([FromBody, Required] string new_value, [Required] int id)
         {
             if (Select().Any(e => e.Value == new_value))
             {

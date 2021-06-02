@@ -35,6 +35,7 @@ namespace Database.Controllers
             var nlu_host = Environment.GetEnvironmentVariable("NLU_HOST");
             var nlu_port = Int16.Parse(Environment.GetEnvironmentVariable("NLU_PORT"));
             client.BaseAddress = new UriBuilder("http", nlu_host, nlu_port).Uri;
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
         }
 
         [HttpGet]
@@ -152,7 +153,7 @@ namespace Database.Controllers
                     q => q.AnswerId,
                     (a, q) => new
                     {
-                        Intent =  $"t{q.Subtopic.TopicId}_st{q.SubtopicId}/a{q.AnswerId}",
+                        Intent = $"t{q.Subtopic.TopicId}_st{q.SubtopicId}/a{q.AnswerId}",
                         Example = q.Value
                     }
                 )
@@ -191,7 +192,7 @@ namespace Database.Controllers
                 .Subtopics
                 .Select(st => new Nlu.Config.Config.Rule
                 {
-                    rule =  $"t{st.TopicId}_st{st.Id}",
+                    rule = $"t{st.TopicId}_st{st.Id}",
                     steps = new List<object> {
                             new { intent =  $"t{st.TopicId}_st{st.Id}" },
                             new { action =  $"utter_t{st.TopicId}_st{st.Id}" }
@@ -209,7 +210,8 @@ namespace Database.Controllers
             response = await client.PutAsync("/model", JsonContent.Create(new Dictionary<string, string> {
                 { "model_file", "models/" + model_file }
             }));
-            return await model;
+            var m = await model;
+            return m;
         }
     }
 }

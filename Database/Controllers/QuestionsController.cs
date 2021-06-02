@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -57,18 +58,36 @@ namespace Database.Controllers
             }
         }
 
+        [HttpGet("get/ui_questions")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<ICollection<EntityQuestion>> GetUiQuestions()
+        {
+            try
+            {
+                return Select()
+                    .Where(q => q.IsUiQuestion)
+                    .Select(q => new EntityQuestion { Id = q.Id, Value = q.Value, IsUiQuestion = q.IsUiQuestion })
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return NotFound("Question not found");
+            }
+        }
+
         [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Post(
-            [FromBody, Required] string questionText, 
+        public ActionResult<EntityQuestion> Post(
+            [FromBody, Required] string questionText,
             [Required] int answerId,
             [Required] int subtopicId,
-            bool? isExample = true
+            bool? isUiQuestion = false
         )
         {
-            bool isEx = isExample ?? true;
+            bool isUi = isUiQuestion ?? false;
             bool alreadyExists = Select().Any(q => questionText == q.Value);
             if (alreadyExists)
             {
@@ -100,6 +119,7 @@ namespace Database.Controllers
             }
             var question = new Question
             {
+                IsUiQuestion = isUi,
                 Value = questionText,
                 SubtopicId = subtopicId,
                 Subtopic = subtopic,
@@ -111,17 +131,34 @@ namespace Database.Controllers
             answer.Question.Add(question);
             subtopic.Question.Add(question);
             _context.SaveChanges();
-            return new Entity { Id = question.Id, Value = question.Value };
+            return new EntityQuestion { Id = question.Id, Value = question.Value, IsUiQuestion = isUi };
         }
 
+        [HttpPut("update/{id}/is_ui_question")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<EntityQuestion> UpdateIsUiQuestion([Required] int id, [FromQuery, Required] bool isUiQuestion)
+        {
+            try
+            {
+                var e = Select().First(e => e.Id == id);
+                e.IsUiQuestion = isUiQuestion;
+                _context.SaveChanges();
+                return new EntityQuestion { Id = e.Id, Value = e.Value, IsUiQuestion = isUiQuestion };
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
         [HttpDelete("delete/{questionId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Delete(int questionId)
+        public ActionResult<EntityQuestion> Delete(int questionId)
         {
             Question question = null;
-            try 
+            try
             {
                 question = Select()
                     .Include(q => q.Answer)
@@ -135,7 +172,7 @@ namespace Database.Controllers
             _context.SaveChanges();
             question.Answer.Question.Remove(question);
             _context.SaveChanges();
-            return new Entity { Id = question.Id, Value = question.Value };
+            return new EntityQuestion { Id = question.Id, Value = question.Value, IsUiQuestion = question.IsUiQuestion };
         }
     }
 }

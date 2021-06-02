@@ -5,7 +5,7 @@ namespace Database.Models
 {
     public class Question : Entity
     {
-        public bool isExample { get; set; }
+        public bool IsUiQuestion { get; set; }
         [Required, ForeignKey("Subtopic")]
         public int SubtopicId { get; set; }
         public virtual Subtopic Subtopic { get; set; }
