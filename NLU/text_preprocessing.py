@@ -74,7 +74,7 @@ class TextPreprocessor(Component):
 
         text = message.data["text"]
         message.data["originalText"] = text
-        text = re.sub(r"[^а-яА-Я\d\s]", " ", text.lower().strip())
+        text = re.sub(r"[^а-яА-ЯёЁ\d\s]", " ", text.lower().strip())
         message.data["text"] = re.sub(r"\s+", " ", text.strip())
 
     def persist(self, file_name: Text, model_dir: Text) -> Optional[Dict[Text, Any]]:

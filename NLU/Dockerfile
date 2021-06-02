@@ -1,20 +1,22 @@
-FROM rasa/rasa:2.6.3 as base
+FROM rasa/rasa:2.6.3
 
 ENV RASA_TELEMETRY_ENABLED=false
+ENV NLU_PATH /app/NLU
+ENV JAMSPELL_FOLDER JamSpell
+ENV MODELS_FOLDER models
+ENV SPELLING_ARCHIVE_FILE dialogues.zip
+ENV SPELLING_ALPHABET_FILE alhabet_ru.txt
+ENV SPELLING_DATASET_FILE dialogues.txt
 ENV SPELLING_MODEL_FILE ru_nstu_chatbot.bin
-
-WORKDIR /app/NLU
-COPY spelling_correction.py spelling_correction.py
-COPY text_preprocessing.py text_preprocessing.py
-EXPOSE 5005
-
-FROM base as rasa_build
 
 USER root
 RUN apt-get install -y \
     cmake \
     g++ \
+    git \
     locales \
+    p7zip-full \
+    p7zip-rar \
     swig3.0
 RUN pip install jamspell
 
@@ -22,36 +24,23 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
-FROM ubuntu:21.10 as lang
-
-ENV SPELLING_ARCHIVE_FILE dialogues.zip
-ENV SPELLING_ALPHABET_FILE alhabet_ru.txt
-ENV SPELLING_DATASET_FILE dialogues.txt
-ENV SPELLING_MODEL_FILE ru_nstu_chatbot.bin
-
-RUN apt-get update 
-RUN apt-get install -y locales p7zip-full p7zip-rar
-RUN rm -rf /var/lib/apt/lists/* 
-RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-ENV LANG en_US.utf8
-
-FROM rikorose/gcc-cmake:gcc-11 as jamspell_build
-
+WORKDIR /
 RUN git clone https://github.com/bakwc/JamSpell.git
-
-WORKDIR /JamSpell/build
+WORKDIR /${JAMSPELL_FOLDER}/build
 RUN cmake ..
 RUN make
 
-FROM lang as jamspell_train
-
-WORKDIR /JamSpell
-COPY --from=jamspell_build /JamSpell/build/main/jamspell ./jamspell
-COPY JamSpell/${SPELLING_ARCHIVE_FILE} ${SPELLING_ARCHIVE_FILE}
+WORKDIR /${JAMSPELL_FOLDER}/build/main
+COPY ${JAMSPELL_FOLDER}/${SPELLING_ARCHIVE_FILE} ${SPELLING_ARCHIVE_FILE}
 RUN 7za x ${SPELLING_ARCHIVE_FILE}
 RUN ./jamspell train ${SPELLING_ALPHABET_FILE} ${SPELLING_DATASET_FILE} ${SPELLING_MODEL_FILE}
 
-FROM rasa_build AS rasa_run
 
-COPY --from=jamspell_train /JamSpell/${SPELLING_MODEL_FILE} models/${SPELLING_MODEL_FILE}
+WORKDIR ${NLU_PATH}
+RUN if [ ! -d ./${JAMSPELL_FOLDER} ]; then mkdir ./${JAMSPELL_FOLDER}; fi
+RUN if [ ! -d ./${MODELS_FOLDER} ]; then mkdir ./${MODELS_FOLDER}; fi
+RUN mv /${JAMSPELL_FOLDER}/build/main/${SPELLING_MODEL_FILE} ${JAMSPELL_FOLDER}/${SPELLING_MODEL_FILE}
+COPY spelling_correction.py spelling_correction.py
+COPY text_preprocessing.py text_preprocessing.py
+EXPOSE 5005
 CMD [ "run", "--enable-api" ]

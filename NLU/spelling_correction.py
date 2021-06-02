@@ -46,9 +46,9 @@ class SpellingCorrector(Component):
     def __init__(self, component_config: Optional[Dict[Text, Any]] = None) -> None:
         super().__init__(component_config)
         self.corrector = jamspell.TSpellCorrector()
-        MODELS_FOLDER = os.environ["MODELS_FOLDER"]
+        JAMSPELL_FOLDER = os.environ["JAMSPELL_FOLDER"]
         SPELLING_MODEL_FILE = os.environ["SPELLING_MODEL_FILE"]
-        model_file_path = os.path.join(MODELS_FOLDER, SPELLING_MODEL_FILE)
+        model_file_path = os.path.join(JAMSPELL_FOLDER, SPELLING_MODEL_FILE)
         self.corrector.LoadLangModel(model_file_path)
 
     def train(
@@ -87,7 +87,7 @@ class SpellingCorrector(Component):
 
     def persist(self, file_name: Text, model_dir: Text) -> Optional[Dict[Text, Any]]:
         """Persist this component to disk for future loading."""
-        return { "spelling_model_file": os.path.join(model_dir, os.environ["SPELLING_MODEL_FILE"]) }
+        return { "spelling_model_file": os.path.join(os.environ["JAMSPELL_FOLDER"], os.environ["SPELLING_MODEL_FILE"]) }
 
     @classmethod
     def load(
