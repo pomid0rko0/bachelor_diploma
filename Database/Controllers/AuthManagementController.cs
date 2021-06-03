@@ -62,21 +62,18 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<AuthResult>> Register(
-            [FromBody, Required] string email,
-            [FromBody, Required] string password
-        )
+        public async Task<ActionResult<AuthResult>> Register([FromBody, Required]AuthRequest user)
         {
             // check i the user with the same email exist
-            var existingUser = await _userManager.FindByEmailAsync(email);
+            var existingUser = await _userManager.FindByEmailAsync(user.Email);
 
             if (existingUser != null)
             {
                 return BadRequest("Email already exist");
             }
 
-            var newUser = new IdentityUser() { Email = email, UserName = email };
-            var isCreated = await _userManager.CreateAsync(newUser, password);
+            var newUser = new IdentityUser() { Email = user.Email, UserName = user.Email };
+            var isCreated = await _userManager.CreateAsync(newUser, user.Password);
             if (isCreated.Succeeded)
             {
                 var jwtToken = GenerateJwtToken(newUser, out int lifetime);
@@ -128,16 +125,13 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<AuthResult>> Login(
-            [FromBody, Required] string email,
-            [FromBody, Required] string password
-        )
+        public async Task<ActionResult<AuthResult>> Login([FromBody, Required]AuthRequest user)
         {
             IdentityUser existingUser;
             // check if the user with the same email exist
             try
             {
-                existingUser = await _userManager.FindByEmailAsync(email);
+                existingUser = await _userManager.FindByEmailAsync(user.Email);
             }
             catch (Exception)
             {
@@ -151,7 +145,7 @@ namespace Database.Controllers
             }
 
             // Now we need to check if the user has inputed the right password
-            var isCorrect = await _userManager.CheckPasswordAsync(existingUser, password);
+            var isCorrect = await _userManager.CheckPasswordAsync(existingUser, user.Password);
 
             if (isCorrect)
             {
