@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 
-using Database.Models.DTO.Requests;
-using Database.Models.DTO.Response;
+using Database.Domain;
 
 namespace Database.Controllers
 {
@@ -36,46 +36,25 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> RegisterFirst()
+        public async Task<ActionResult> RegisterFirst()
         {
-            // Check if the incoming request is valid
-            if (ModelState.IsValid)
+            var email = Environment.GetEnvironmentVariable("FIRST_EMAIL");
+            // check i the user with the same email exist
+            var existingUser = await _userManager.FindByEmailAsync(email);
+
+            if (existingUser != null)
             {
-                var email = Environment.GetEnvironmentVariable("FIRST_EMAIL");
-                // check i the user with the same email exist
-                var existingUser = await _userManager.FindByEmailAsync(email);
-
-                if (existingUser != null)
-                {
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Result = false,
-                        Errors = new List<string>() { "Email already exist" }
-                    });
-                }
-
-                var password = Environment.GetEnvironmentVariable("FIRST_PASSWORD");
-                var newUser = new IdentityUser() { Email = email, UserName = email };
-                var isCreated = await _userManager.CreateAsync(newUser, password);
-                if (isCreated.Succeeded)
-                {
-                    return Ok();
-                }
-
-                return new JsonResult(new RegistrationResponse()
-                {
-                    Result = false,
-                    Errors = isCreated.Errors.Select(x => x.Description).ToList()
-                }
-                )
-                { StatusCode = 500 };
+                return BadRequest("Email already exist");
             }
 
-            return BadRequest(new RegistrationResponse()
+            var password = Environment.GetEnvironmentVariable("FIRST_PASSWORD");
+            var newUser = new IdentityUser() { Email = email, UserName = email };
+            var isCreated = await _userManager.CreateAsync(newUser, password);
+            if (isCreated.Succeeded)
             {
-                Result = false,
-                Errors = new List<string>() { "Invalid payload" }
-            });
+                return Ok();
+            }
+            return StatusCode(500, isCreated.Errors.ToList());
         }
 
         [HttpPost("Register")]
@@ -83,53 +62,35 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> Register([FromBody, Required] UserRegistrationRequestDto user)
+        public async Task<ActionResult<AuthResult>> Register(
+            [FromBody, Required] string email,
+            [FromBody, Required] string password
+        )
         {
-            // Check if the incoming request is valid
-            if (ModelState.IsValid)
+            // check i the user with the same email exist
+            var existingUser = await _userManager.FindByEmailAsync(email);
+
+            if (existingUser != null)
             {
-                // check i the user with the same email exist
-                var existingUser = await _userManager.FindByEmailAsync(user.Email);
-
-                if (existingUser != null)
-                {
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Result = false,
-                        Errors = new List<string>() { "Email already exist" }
-                    });
-                }
-
-                var newUser = new IdentityUser() { Email = user.Email, UserName = user.Email };
-                var isCreated = await _userManager.CreateAsync(newUser, user.Password);
-                if (isCreated.Succeeded)
-                {
-                    var jwtToken = GenerateJwtToken(newUser);
-
-                    return Ok(new RegistrationResponse()
-                    {
-                        Result = true,
-                        Token = jwtToken
-                    });
-                }
-
-                return new JsonResult(new RegistrationResponse()
-                {
-                    Result = false,
-                    Errors = isCreated.Errors.Select(x => x.Description).ToList()
-                }
-                )
-                { StatusCode = 500 };
+                return BadRequest("Email already exist");
             }
 
-            return BadRequest(new RegistrationResponse()
+            var newUser = new IdentityUser() { Email = email, UserName = email };
+            var isCreated = await _userManager.CreateAsync(newUser, password);
+            if (isCreated.Succeeded)
             {
-                Result = false,
-                Errors = new List<string>() { "Invalid payload" }
-            });
+                var jwtToken = GenerateJwtToken(newUser, out int lifetime);
+
+                return Ok(new AuthResult()
+                {
+                    Token = jwtToken,
+                    Expires = lifetime,
+                });
+            }
+            return StatusCode(500, isCreated.Errors.ToList());
         }
 
-        private string GenerateJwtToken(IdentityUser user)
+        private string GenerateJwtToken(IdentityUser user, out int lifetime)
         {
             // Now its ime to define the jwt token which will be responsible of creating our tokens
             var jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -142,6 +103,7 @@ namespace Database.Controllers
             // which belong to the specific user who it belongs to
             // so it could contain their id, name, email the good part is that these information
             // are generated by our server and identity framework which is valid and trusted
+            lifetime = Int32.Parse(Environment.GetEnvironmentVariable("TOKEN_LIFETIME"));
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -149,12 +111,9 @@ namespace Database.Controllers
                     new Claim("Id", user.Id),
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                    // the JTI is used for our refresh token which we will be convering in the next video
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 }),
-                // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
-                // but since this is a demo app we can extend it to fit our current need
-                Expires = DateTime.UtcNow.AddHours(6),
+                Expires = DateTime.UtcNow.AddSeconds(lifetime),
                 // here we are adding the encryption alogorithim information which will be used to decrypt our token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
             };
@@ -169,60 +128,46 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Login([FromBody, Required] UserLoginRequest user)
+        public async Task<ActionResult<AuthResult>> Login(
+            [FromBody, Required] string email,
+            [FromBody, Required] string password
+        )
         {
-            if (ModelState.IsValid)
+            IdentityUser existingUser;
+            // check if the user with the same email exist
+            try
             {
-                IdentityUser existingUser;
-                // check if the user with the same email exist
-                try
-                {
-                    existingUser = await _userManager.FindByEmailAsync(user.Email);
-                }
-                catch (Exception)
-                {
-                    return NotFound();
-                }
-
-                if (existingUser == null)
-                {
-                    // We dont want to give to much information on why the request has failed for security reasons
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Result = false,
-                        Errors = new List<string>() { "Invalid authentication request" }
-                    });
-                }
-
-                // Now we need to check if the user has inputed the right password
-                var isCorrect = await _userManager.CheckPasswordAsync(existingUser, user.Password);
-
-                if (isCorrect)
-                {
-                    var jwtToken = GenerateJwtToken(existingUser);
-
-                    return Ok(new RegistrationResponse()
-                    {
-                        Result = true,
-                        Token = jwtToken
-                    });
-                }
-                else
-                {
-                    // We dont want to give to much information on why the request has failed for security reasons
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Result = false,
-                        Errors = new List<string>() { "Invalid authentication request" }
-                    });
-                }
+                existingUser = await _userManager.FindByEmailAsync(email);
+            }
+            catch (Exception)
+            {
+                return NotFound();
             }
 
-            return BadRequest(new RegistrationResponse()
+            if (existingUser == null)
             {
-                Result = false,
-                Errors = new List<string>() { "Invalid payload" }
-            });
+                // We dont want to give to much information on why the request has failed for security reasons
+                return BadRequest("Invalid authentication request");
+            }
+
+            // Now we need to check if the user has inputed the right password
+            var isCorrect = await _userManager.CheckPasswordAsync(existingUser, password);
+
+            if (isCorrect)
+            {
+                var jwtToken = GenerateJwtToken(existingUser, out int lifetime);
+
+                return Ok(new AuthResult()
+                {
+                    Token = jwtToken,
+                    Expires = lifetime
+                });
+            }
+            else
+            {
+                // We dont want to give to much information on why the request has failed for security reasons
+                return BadRequest("Invalid authentication request");
+            }
         }
     }
 }
