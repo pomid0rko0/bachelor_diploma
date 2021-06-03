@@ -22,13 +22,22 @@ namespace Database.Controllers
         }
 
         [HttpGet("get/{id}/questions")]
-        public ActionResult<IEnumerable<Question>> GetAnswerIntent(int id)
+        [ProducesResponseType(404)]
+        public ActionResult<IEnumerable<Entity>> GetAnswerIntent(int id)
         {
-            return Select()
-                .Include(a => a.Question)
-                .First(answer => answer.Id == id)
-                .Question
-                .ToList();
+            try
+            {
+                return Select()
+                    .Include(a => a.Question)
+                    .First(a => a.Id == id)
+                    .Question
+                    .Select(q => new EntityQuestion { Id = q.Id, Value = q.Value, IsUiQuestion = q.IsUiQuestion })
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return NotFound("Not found");
+            }
         }
 
         [HttpPost("add")]

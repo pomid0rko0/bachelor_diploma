@@ -28,10 +28,12 @@ namespace Database.Controllers
         {
             try
             {
-                return Select()
+                var st = Select()
                     .Include(q => q.Subtopic)
                     .First(q => q.Id == questionId)
                     .Subtopic;
+                return new Entity { Id = st.Id, Value = st.Value };
+                
             }
             catch (Exception)
             {
