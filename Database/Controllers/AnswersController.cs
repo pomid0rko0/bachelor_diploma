@@ -49,7 +49,7 @@ namespace Database.Controllers
             bool alreadyExists = Select().Any(a => answerText.ToLower() == a.Value.ToLower());
             if (alreadyExists)
             {
-                return BadRequest("Answer already exists");
+                return BadRequest("Already exists");
             }
             var answer = new Answer
             {

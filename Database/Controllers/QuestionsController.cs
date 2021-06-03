@@ -93,7 +93,7 @@ namespace Database.Controllers
             bool alreadyExists = Select().Any(q => questionText == q.Value);
             if (alreadyExists)
             {
-                return BadRequest("Question already exists");
+                return BadRequest("Already exists");
             }
             Subtopic subtopic = null;
             try
