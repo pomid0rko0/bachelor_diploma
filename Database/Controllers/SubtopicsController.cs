@@ -36,7 +36,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Subtopic not found");
+                return NotFound("Not found");
             }
         }
 
@@ -56,7 +56,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Subtopic not found");
+                return NotFound("Not found");
             }
         }
 
@@ -69,7 +69,7 @@ namespace Database.Controllers
             bool alreadyExists = Select().Any(st => subtopicText == st.Value);
             if (alreadyExists)
             {
-                return BadRequest("Subtopic already exists");
+                return BadRequest("Already exists");
             }
             Topic topic = null;
             try

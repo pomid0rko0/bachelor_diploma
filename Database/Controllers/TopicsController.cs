@@ -37,7 +37,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Topic not found");
+                return NotFound("Not found");
             }
         }
 
@@ -49,7 +49,7 @@ namespace Database.Controllers
             bool alreadyExists = Select().Any(t => topicText == t.Value);
             if (alreadyExists)
             {
-                return BadRequest("Topic already exists");
+                return BadRequest("Already exists");
             }
             var topic = new Topic
             {
@@ -76,7 +76,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Topic not found");
+                return NotFound("Not found");
             }            
             if (topic.Subtopic.Count() > 0)
             {

@@ -71,7 +71,7 @@ namespace Database
                     Type = SecuritySchemeType.ApiKey,
                     Scheme = "Bearer"
                 });
-
+                
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement()
                 {
                     {
@@ -85,7 +85,7 @@ namespace Database
                         Scheme = "oauth2",
                         Name = "Bearer",
                         In = ParameterLocation.Header,
-
+                
                         },
                         new List<string>()
                     }

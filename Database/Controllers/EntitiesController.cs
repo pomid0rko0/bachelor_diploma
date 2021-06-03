@@ -58,7 +58,7 @@ namespace Database.Controllers
             }
             catch
             {
-                return NotFound();
+                return NotFound("Not found");
             }
         }
 
@@ -96,7 +96,7 @@ namespace Database.Controllers
             }
             catch
             {
-                return NotFound();
+                return NotFound("Not found");
             }
         }
 
@@ -119,7 +119,7 @@ namespace Database.Controllers
             }
             catch
             {
-                return NotFound();
+                return NotFound("Not found");
             }
         }
     }

@@ -68,7 +68,7 @@ namespace Database.Controllers
         public ActionResult<Entity> Delete(int answerId)
         {
             Answer answer = null;
-            try 
+            try
             {
                 answer = Select()
                     .Include(a => a.Question)
@@ -76,7 +76,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Answer not found");
+                return NotFound("Not found");
             }
             if (answer.Question.Take(1).Count() > 0)
             {

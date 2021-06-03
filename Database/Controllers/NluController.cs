@@ -77,7 +77,6 @@ namespace Database.Controllers
 
         [HttpPost("test")]
         public async Task<Nlu.Api.Test.TestResult> Test(
-        //public async Task<object> Test(
             [FromQuery] string model = null,
             [FromQuery] string callback_url = null,
             [FromQuery] int? cross_validation_folds = null,

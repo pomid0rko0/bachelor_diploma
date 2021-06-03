@@ -56,7 +56,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Question not found");
+                return NotFound("Not found");
             }
         }
 
@@ -74,7 +74,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Question not found");
+                return NotFound("Not found");
             }
         }
 
