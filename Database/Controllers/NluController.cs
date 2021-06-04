@@ -137,10 +137,10 @@ namespace Database.Controllers
                 uri = QueryHelpers.AddQueryString(uri, "callback_url", callback_url);
             }
 
-            Nlu.Config.Config Config;
+            Nlu.Config Config;
             using (var reader = new StreamReader(Environment.GetEnvironmentVariable("NLU_CONFIG_FILE")))
             {
-                Config = new DeserializerBuilder().Build().Deserialize<Nlu.Config.Config>(reader.ReadToEnd());
+                Config = new DeserializerBuilder().Build().Deserialize<Nlu.Config>(reader.ReadToEnd());
             }
             Config.intents = _context.Subtopics.Select(st => $"t{st.TopicId}_st{st.Id}").ToList();
             Config.nlu = _context
@@ -157,7 +157,7 @@ namespace Database.Controllers
                     }
                 )
                 .GroupBy(i => i.Intent)
-                .Select(i => new Nlu.Config.Config.Intent
+                .Select(i => new Nlu.Config.Intent
                 {
                     intent = i.Key,
                     examples = String.Join("\n", i.Select(q => $"- {q.Example}"))
@@ -179,7 +179,7 @@ namespace Database.Controllers
                 .GroupBy(r => r.Action)
                 .ToDictionary(
                     r => r.Key,
-                    r => r.Select(i => new Nlu.Config.Config.Response { text = i.Answer })
+                    r => r.Select(i => new Nlu.Config.Response { text = i.Answer })
                 );
             Config.responses = Config
                 .responses
@@ -189,7 +189,7 @@ namespace Database.Controllers
 
             var rules = _context
                 .Subtopics
-                .Select(st => new Nlu.Config.Config.Rule
+                .Select(st => new Nlu.Config.Rule
                 {
                     rule = $"t{st.TopicId}_st{st.Id}",
                     steps = new List<object> {

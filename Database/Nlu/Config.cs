@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Database.Nlu.Config
+namespace Database.Nlu
 {
     public class Config
     {
