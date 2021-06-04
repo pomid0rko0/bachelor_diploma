@@ -23,7 +23,7 @@ namespace Database.Controllers
 
         [HttpGet("get/{id}/questions")]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Entity>> GetAnswerIntent(int id)
+        public ActionResult<IEnumerable<Entity>> GetQuestion(int id)
         {
             try
             {
