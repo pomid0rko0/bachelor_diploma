@@ -13,6 +13,7 @@ namespace Database.Models
             IsUiQuestion = IsUiQuestion
         };
         public static EntityQuestion RemoveReferences(Question q) => q.RemoveReferences();
+        public virtual Subtopic Subtopic { get; set; }
         public virtual Answer Answer { get; set; }
     }
 }

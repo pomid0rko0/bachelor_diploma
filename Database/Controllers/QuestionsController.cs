@@ -29,11 +29,11 @@ namespace Database.Controllers
         {
             try
             {
-                var st = Select()
+                return Select()
                     .Include(q => q.Subtopic)
                     .First(q => q.Id == questionId)
-                    .Subtopic;
-                return Subtopic.RemoveReferences(st);
+                    .Subtopic
+                    .RemoveReferences();
 
             }
             catch (Exception)
