@@ -150,9 +150,10 @@ namespace Database.Controllers
             }
             catch
             {
-                return NotFound();
+                return NotFound("Not found");
             }
         }
+
         [HttpDelete("delete/{questionId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -168,7 +169,7 @@ namespace Database.Controllers
             }
             catch (Exception)
             {
-                return NotFound("Question not found");
+                return NotFound("Not found");
             }
             _context.Questions.Remove(question);
             _context.SaveChanges();
