@@ -1,15 +1,18 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Database.Models.Entities;
 
 namespace Database.Models
 {
     public class Question : EntityQuestion
     {
-        [Required, ForeignKey("Subtopic")]
-        public int SubtopicId { get; set; }
-        public virtual Subtopic Subtopic { get; set; }
-        [Required, ForeignKey("Answer")]
-        public int AnswerId { get; set; }
+        public EntityQuestion RemoveReferences() => new EntityQuestion
+        {
+            Id = Id,
+            Value = Value,
+            AnswerId = AnswerId,
+            SubtopicId = SubtopicId,
+            IsUiQuestion = IsUiQuestion
+        };
+        public static EntityQuestion RemoveReferences(Question q) => q.RemoveReferences();
         public virtual Answer Answer { get; set; }
     }
 }

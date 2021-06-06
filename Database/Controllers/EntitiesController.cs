@@ -9,31 +9,33 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 
 using Database.Data;
-using Database.Models;
+using Database.Models.Entities;
 
 namespace Database.Controllers
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class EntitiesController<C, M> : ControllerBase
+    public class EntitiesController<C, M, R> : ControllerBase
     where M : Entity
     where C : ControllerBase
     {
         protected readonly ILogger<C> _logger;
         protected readonly QAContext _context;
+        protected readonly Func<M, R> _unlinker;
 
         protected IQueryable<M> Select()
         {
             return _context.Set<M>().OrderBy(e => e.Id);
         }
 
-        public EntitiesController(QAContext context, ILogger<C> logger)
+        public EntitiesController(QAContext context, ILogger<C> logger, Func<M, R> unlinker)
         {
             _context = context;
             _logger = logger;
+            _unlinker = unlinker;
         }
 
         [HttpGet("get/all")]
-        public ActionResult<IEnumerable<Entity>> GetAll(
+        public ActionResult<IEnumerable<R>> GetAll(
             [Range(0, Int32.MaxValue)] int? offset = 0,
             [Range(0, 1000)] int? size = 1000
         )
@@ -41,7 +43,7 @@ namespace Database.Controllers
             return Select()
                 .Skip(offset ?? 0)
                 .Take(size ?? 1000)
-                .Select(e => new Entity { Id = e.Id, Value = e.Value })
+                .Select(_unlinker)
                 .ToList();
         }
 
@@ -49,14 +51,14 @@ namespace Database.Controllers
         [HttpGet("get/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> GetById([Required] int id)
+        public ActionResult<R> GetById([Required] int id)
         {
             try
             {
                 var e = Select().First(e => e.Id == id);
-                return new Entity { Id = e.Id, Value = e.Value };
+                return _unlinker(e);
             }
-            catch
+            catch (Exception)
             {
                 return NotFound("Not found");
             }
@@ -66,7 +68,7 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Find(
+        public ActionResult<R> Find(
             [Required] string value,
             [RegularExpression("part|full|regex")] string match_type = "part",
             bool? case_sensitivity = false
@@ -77,7 +79,7 @@ namespace Database.Controllers
             var string_comparsion = cs ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             try
             {
-                Entity e;
+                M e;
                 switch (match_type.ToLower())
                 {
                     case "part":
@@ -92,9 +94,9 @@ namespace Database.Controllers
                     default:
                         return BadRequest("match_type must be 'part' | 'full' | 'regex'");
                 }
-                return new Entity { Id = e.Id, Value = e.Value };
+                return _unlinker(e);
             }
-            catch
+            catch (Exception)
             {
                 return NotFound("Not found");
             }
@@ -104,7 +106,7 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Update([FromBody, Required] string new_value, [Required] int id)
+        public ActionResult<R> Update([FromBody, Required] string new_value, [Required] int id)
         {
             if (Select().Any(e => e.Value == new_value))
             {
@@ -115,9 +117,9 @@ namespace Database.Controllers
                 var e = Select().First(e => e.Id == id);
                 e.Value = new_value;
                 _context.SaveChanges();
-                return new Entity { Id = e.Id, Value = e.Value };
+                return _unlinker(e);
             }
-            catch
+            catch (Exception)
             {
                 return NotFound("Not found");
             }

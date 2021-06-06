@@ -1,13 +1,18 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
+using Database.Models.Entities;
 
 namespace Database.Models
 {
-    public class Subtopic : Entity
+    public class Subtopic : EntitySubtopic
     {
-        [Required, ForeignKey("Topic")]
-        public int TopicId { get; set; }
+        public EntitySubtopic RemoveReferences() => new EntitySubtopic
+        {
+            Id = Id,
+            Value = Value,
+            TopicId = TopicId
+        };
+        public static EntitySubtopic RemoveReferences(Subtopic st) => st.RemoveReferences();
         public virtual Topic Topic { get; set; }
         public virtual ICollection<Question> Question { get; set; }
     }

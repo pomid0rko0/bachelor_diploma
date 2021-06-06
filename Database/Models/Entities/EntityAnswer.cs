@@ -1,4 +1,4 @@
-namespace Database.Models
+namespace Database.Models.Entities
 {
     public class EntityAnswer : Entity
     {

@@ -8,31 +8,32 @@ using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
+using Database.Models.Entities;
 
 namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class SubtopicsController : EntitiesController<SubtopicsController, Subtopic>
+    public class SubtopicsController : EntitiesController<SubtopicsController, Subtopic, EntitySubtopic>
     {
 
         public SubtopicsController(QAContext context, ILogger<SubtopicsController> logger)
-            : base(context, logger)
+            : base(context, logger, Subtopic.RemoveReferences)
         {
         }
 
         [HttpGet("get/{subtopicId}/topic")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> GetSubtopicTopic(int subtopicId)
+        public ActionResult<EntityTopic> GetSubtopicTopic(int subtopicId)
         {
             try
             {
-                var t = Select()
+                return Select()
                     .Include(st => st.Topic)
                     .First(st => st.Id == subtopicId)
-                    .Topic;
-                return new Entity { Id = t.Id, Value = t.Value };
+                    .Topic
+                    .RemoveReferences();
             }
             catch (Exception)
             {
@@ -43,7 +44,7 @@ namespace Database.Controllers
         [HttpGet("get/{subtopicId}/questions")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Entity>> GetQuestions(int subtopicId)
+        public ActionResult<IEnumerable<EntityQuestion>> GetQuestions(int subtopicId)
         {
             try
             {
@@ -51,7 +52,7 @@ namespace Database.Controllers
                     .Include(st => st.Question)
                     .First(st => st.Id == subtopicId)
                     .Question
-                    .Select(q => new Entity { Id = q.Id, Value = q.Value })
+                    .Select(Question.RemoveReferences)
                     .ToList();
             }
             catch (Exception)
@@ -64,7 +65,7 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Post([FromBody, Required] string subtopicText, [Required] int topicId)
+        public ActionResult<EntitySubtopic> Post([FromBody, Required] string subtopicText, [Required] int topicId)
         {
             bool alreadyExists = Select().Any(st => subtopicText == st.Value);
             if (alreadyExists)
@@ -94,14 +95,14 @@ namespace Database.Controllers
             _context.SaveChanges();
             topic.Subtopic.Add(subtopic);
             _context.SaveChanges();
-            return new Entity { Id = subtopic.Id, Value = subtopic.Value };
+            return subtopic.RemoveReferences();
         }
 
         [HttpDelete("delete/{subtopicId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Delete(int subtopicId)
+        public ActionResult<EntitySubtopic> Delete(int subtopicId)
         {
             Subtopic subtopic = null;
             try
@@ -113,14 +114,14 @@ namespace Database.Controllers
             catch (Exception)
             {
                 return NotFound("Subtopic not found");
-            }            
+            }
             if (subtopic.Question.Count() > 0)
             {
                 return BadRequest("Subtopic depends on some questions. Delete questions first");
             }
             _context.Subtopics.Remove(subtopic);
             _context.SaveChanges();
-            return new Entity { Id = subtopic.Id, Value = subtopic.Value };
+            return subtopic.RemoveReferences();
         }
     }
 }

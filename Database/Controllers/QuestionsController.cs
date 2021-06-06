@@ -8,23 +8,24 @@ using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
+using Database.Models.Entities;
 
 namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class QuestionsController : EntitiesController<QuestionsController, Question>
+    public class QuestionsController : EntitiesController<QuestionsController, Question, EntityQuestion>
     {
 
         public QuestionsController(QAContext context, ILogger<QuestionsController> logger)
-            : base(context, logger)
+            : base(context, logger, Question.RemoveReferences)
         {
         }
 
-        [HttpGet("get/{questionId}/subtopic")]
+        [HttpGet("get/{id}/subtopic")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> GetQuestionSubtopic(int questionId)
+        public ActionResult<EntitySubtopic> GetQuestionSubtopic(int questionId)
         {
             try
             {
@@ -32,27 +33,27 @@ namespace Database.Controllers
                     .Include(q => q.Subtopic)
                     .First(q => q.Id == questionId)
                     .Subtopic;
-                return new Entity { Id = st.Id, Value = st.Value };
-                
+                return Subtopic.RemoveReferences(st);
+
             }
             catch (Exception)
             {
-                return NotFound("Question not found");
+                return NotFound("Not found");
             }
         }
 
-        [HttpGet("get/{questionId}/answer")]
+        [HttpGet("get/{id}/answer")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> GetQuestionAnswer(int questionId)
+        public ActionResult<EntityAnswer> GetQuestionAnswer(int questionId)
         {
             try
             {
-                var a = Select()
+                return Select()
                     .Include(q => q.Answer)
                     .First(q => q.Id == questionId)
-                    .Answer;
-                return new Entity { Id = a.Id, Value = a.Value };
+                    .Answer
+                    .RemoveReferences();
             }
             catch (Exception)
             {
@@ -69,7 +70,7 @@ namespace Database.Controllers
             {
                 return Select()
                     .Where(q => q.IsUiQuestion)
-                    .Select(q => new EntityQuestion { Id = q.Id, Value = q.Value, IsUiQuestion = q.IsUiQuestion })
+                    .Select(Question.RemoveReferences)
                     .ToList();
             }
             catch (Exception)
@@ -133,7 +134,7 @@ namespace Database.Controllers
             answer.Question.Add(question);
             subtopic.Question.Add(question);
             _context.SaveChanges();
-            return new EntityQuestion { Id = question.Id, Value = question.Value, IsUiQuestion = isUi };
+            return question.RemoveReferences();
         }
 
         [HttpPut("update/{id}/is_ui_question")]
@@ -143,10 +144,10 @@ namespace Database.Controllers
         {
             try
             {
-                var e = Select().First(e => e.Id == id);
-                e.IsUiQuestion = isUiQuestion;
+                var q = Select().First(q => q.Id == id);
+                q.IsUiQuestion = isUiQuestion;
                 _context.SaveChanges();
-                return new EntityQuestion { Id = e.Id, Value = e.Value, IsUiQuestion = isUiQuestion };
+                return q.RemoveReferences();
             }
             catch
             {
@@ -175,7 +176,7 @@ namespace Database.Controllers
             _context.SaveChanges();
             question.Answer.Question.Remove(question);
             _context.SaveChanges();
-            return new EntityQuestion { Id = question.Id, Value = question.Value, IsUiQuestion = question.IsUiQuestion };
+            return question.RemoveReferences();
         }
     }
 }

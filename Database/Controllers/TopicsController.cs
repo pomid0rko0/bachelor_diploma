@@ -8,23 +8,24 @@ using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
+using Database.Models.Entities;
 
 namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TopicsController : EntitiesController<TopicsController, Topic>
+    public class TopicsController : EntitiesController<TopicsController, Topic, EntityTopic>
     {
 
         public TopicsController(QAContext context, ILogger<TopicsController> logger)
-            : base(context, logger)
+            : base(context, logger, Topic.RemoveReferences)
         {
         }
 
         [HttpGet("get/{topicId}/subtopics")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Entity>> GetSubtopics(int topicId)
+        public ActionResult<IEnumerable<EntitySubtopic>> GetSubtopics(int topicId)
         {
             try
             {
@@ -32,7 +33,7 @@ namespace Database.Controllers
                     .Include(t => t.Subtopic)
                     .First(t => t.Id == topicId)
                     .Subtopic
-                    .Select(st => new Entity { Id = st.Id, Value = st.Value })
+                    .Select(Subtopic.RemoveReferences)
                     .ToList();
             }
             catch (Exception)
@@ -44,7 +45,7 @@ namespace Database.Controllers
         [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public ActionResult<Entity> Post([FromBody, Required] string topicText)
+        public ActionResult<EntityTopic> Post([FromBody, Required] string topicText)
         {
             bool alreadyExists = Select().Any(t => topicText == t.Value);
             if (alreadyExists)
@@ -58,14 +59,14 @@ namespace Database.Controllers
             };
             _context.Topics.Add(topic);
             _context.SaveChanges();
-            return new Entity { Id = topic.Id, Value = topic.Value };
+            return topic.RemoveReferences();
         }
 
         [HttpDelete("delete/{topicId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Delete(int topicId)
+        public ActionResult<EntityTopic> Delete(int topicId)
         {
             Topic topic = null;
             try
@@ -77,14 +78,14 @@ namespace Database.Controllers
             catch (Exception)
             {
                 return NotFound("Not found");
-            }            
+            }
             if (topic.Subtopic.Count() > 0)
             {
                 return BadRequest("Topic depends on some subtopics. Delete subtopics first");
             }
             _context.Topics.Remove(topic);
             _context.SaveChanges();
-            return new Entity { Id = topic.Id, Value = topic.Value };
+            return topic.RemoveReferences();
         }
     }
 }

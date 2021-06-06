@@ -8,17 +8,18 @@ using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
+using Database.Models.Entities;
 using Database.Domain;
 
 namespace Database.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AnswersController : EntitiesController<AnswersController, Answer>
+    public class AnswersController : EntitiesController<AnswersController, Answer, EntityAnswer>
     {
 
         public AnswersController(QAContext context, ILogger<AnswersController> logger)
-            : base(context, logger)
+            : base(context, logger, Answer.RemoveReferences)
         {
         }
 
@@ -32,7 +33,7 @@ namespace Database.Controllers
                     .Include(a => a.Question)
                     .First(a => a.Id == id)
                     .Question
-                    .Select(q => new EntityQuestion { Id = q.Id, Value = q.Value, IsUiQuestion = q.IsUiQuestion })
+                    .Select(Question.RemoveReferences)
                     .ToList();
             }
             catch (Exception)
@@ -45,22 +46,22 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<EntityAnswer> Post([FromBody, Required] AddAnswerRequest Answer)
+        public ActionResult<EntityAnswer> Post([FromBody, Required] AddAnswerRequest addAnswer)
         {
-            bool alreadyExists = Select().Any(a => Answer.Text.ToLower() == a.Value.ToLower());
+            bool alreadyExists = Select().Any(a => addAnswer.Text.ToLower() == a.Value.ToLower());
             if (alreadyExists)
             {
                 return BadRequest("Already exists");
             }
             var answer = new Answer
             {
-                Value = Answer.Text,
-                FullAnswerUrl = Answer.Url,
+                Value = addAnswer.Text,
+                FullAnswerUrl = addAnswer.Url,
                 Question = new List<Question>()
             };
             _context.Answers.Add(answer);
             _context.SaveChanges();
-            return new EntityAnswer { Id = answer.Id, Value = answer.Value, FullAnswerUrl = answer.FullAnswerUrl };
+            return answer.RemoveReferences();
         }
 
         [HttpPut("update/{id}/full_answer_url")]
@@ -73,15 +74,15 @@ namespace Database.Controllers
                 var a = Select().First(a => a.Id == id);
                 a.FullAnswerUrl = fullAnswerUrl;
                 _context.SaveChanges();
-                return new EntityAnswer { Id = a.Id, Value = a.Value, FullAnswerUrl = a.FullAnswerUrl };
+                return a.RemoveReferences();
             }
             catch
             {
                 return NotFound("Not found");
             }
         }
-        
-        [HttpDelete("delete/{answerId}")]
+
+        [HttpDelete("delete/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
@@ -104,7 +105,7 @@ namespace Database.Controllers
             }
             _context.Answers.Remove(answer);
             _context.SaveChanges();
-            return new EntityAnswer { Id = answer.Id, Value = answer.Value };
+            return answer.RemoveReferences();
         }
     }
 }
