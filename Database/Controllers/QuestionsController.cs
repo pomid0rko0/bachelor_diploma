@@ -18,7 +18,7 @@ namespace Database.Controllers
     {
 
         public QuestionsController(QAContext context, ILogger<QuestionsController> logger)
-            : base(context, logger, Question.RemoveReferences)
+            : base(context, logger, Question.WithoutReferences)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Database.Controllers
                     .Include(q => q.Subtopic)
                     .First(q => q.Id == questionId)
                     .Subtopic
-                    .RemoveReferences();
+                    .WithoutReferences();
 
             }
             catch (Exception)
@@ -53,7 +53,7 @@ namespace Database.Controllers
                     .Include(q => q.Answer)
                     .First(q => q.Id == questionId)
                     .Answer
-                    .RemoveReferences();
+                    .WithoutReferences();
             }
             catch (Exception)
             {
@@ -70,7 +70,7 @@ namespace Database.Controllers
             {
                 return Select()
                     .Where(q => q.IsUiQuestion)
-                    .Select(Question.RemoveReferences)
+                    .Select(Question.WithoutReferences)
                     .ToList();
             }
             catch (Exception)
@@ -134,7 +134,7 @@ namespace Database.Controllers
             answer.Question.Add(question);
             subtopic.Question.Add(question);
             _context.SaveChanges();
-            return question.RemoveReferences();
+            return question.WithoutReferences();
         }
 
         [HttpPut("update/{id}/is_ui_question")]
@@ -147,7 +147,7 @@ namespace Database.Controllers
                 var q = Select().First(q => q.Id == id);
                 q.IsUiQuestion = isUiQuestion;
                 _context.SaveChanges();
-                return q.RemoveReferences();
+                return q.WithoutReferences();
             }
             catch
             {
@@ -176,7 +176,7 @@ namespace Database.Controllers
             _context.SaveChanges();
             question.Answer.Question.Remove(question);
             _context.SaveChanges();
-            return question.RemoveReferences();
+            return question.WithoutReferences();
         }
     }
 }

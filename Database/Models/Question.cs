@@ -4,7 +4,7 @@ namespace Database.Models
 {
     public class Question : EntityQuestion
     {
-        public EntityQuestion RemoveReferences() => new EntityQuestion
+        public EntityQuestion WithoutReferences() => new EntityQuestion
         {
             Id = Id,
             Value = Value,
@@ -12,7 +12,7 @@ namespace Database.Models
             SubtopicId = SubtopicId,
             IsUiQuestion = IsUiQuestion
         };
-        public static EntityQuestion RemoveReferences(Question q) => q.RemoveReferences();
+        public static EntityQuestion WithoutReferences(Question q) => q.WithoutReferences();
         public virtual Subtopic Subtopic { get; set; }
         public virtual Answer Answer { get; set; }
     }

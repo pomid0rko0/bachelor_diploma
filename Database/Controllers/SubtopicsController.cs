@@ -18,7 +18,7 @@ namespace Database.Controllers
     {
 
         public SubtopicsController(QAContext context, ILogger<SubtopicsController> logger)
-            : base(context, logger, Subtopic.RemoveReferences)
+            : base(context, logger, Subtopic.WithoutReferences)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Database.Controllers
                     .Include(st => st.Topic)
                     .First(st => st.Id == subtopicId)
                     .Topic
-                    .RemoveReferences();
+                    .WithoutReferences();
             }
             catch (Exception)
             {
@@ -52,7 +52,7 @@ namespace Database.Controllers
                     .Include(st => st.Question)
                     .First(st => st.Id == subtopicId)
                     .Question
-                    .Select(Question.RemoveReferences)
+                    .Select(Question.WithoutReferences)
                     .ToList();
             }
             catch (Exception)
@@ -95,7 +95,7 @@ namespace Database.Controllers
             _context.SaveChanges();
             topic.Subtopic.Add(subtopic);
             _context.SaveChanges();
-            return subtopic.RemoveReferences();
+            return subtopic.WithoutReferences();
         }
 
         [HttpDelete("delete/{subtopicId}")]
@@ -121,7 +121,7 @@ namespace Database.Controllers
             }
             _context.Subtopics.Remove(subtopic);
             _context.SaveChanges();
-            return subtopic.RemoveReferences();
+            return subtopic.WithoutReferences();
         }
     }
 }

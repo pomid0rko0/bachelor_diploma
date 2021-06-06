@@ -19,7 +19,7 @@ namespace Database.Controllers
     {
 
         public AnswersController(QAContext context, ILogger<AnswersController> logger)
-            : base(context, logger, Answer.RemoveReferences)
+            : base(context, logger, Answer.WithoutReferences)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Database.Controllers
                     .Include(a => a.Question)
                     .First(a => a.Id == id)
                     .Question
-                    .Select(Question.RemoveReferences)
+                    .Select(Question.WithoutReferences)
                     .ToList();
             }
             catch (Exception)
@@ -61,7 +61,7 @@ namespace Database.Controllers
             };
             _context.Answers.Add(answer);
             _context.SaveChanges();
-            return answer.RemoveReferences();
+            return answer.WithoutReferences();
         }
 
         [HttpPut("update/{id}/full_answer_url")]
@@ -74,7 +74,7 @@ namespace Database.Controllers
                 var a = Select().First(a => a.Id == id);
                 a.FullAnswerUrl = fullAnswerUrl;
                 _context.SaveChanges();
-                return a.RemoveReferences();
+                return a.WithoutReferences();
             }
             catch
             {
@@ -105,7 +105,7 @@ namespace Database.Controllers
             }
             _context.Answers.Remove(answer);
             _context.SaveChanges();
-            return answer.RemoveReferences();
+            return answer.WithoutReferences();
         }
     }
 }

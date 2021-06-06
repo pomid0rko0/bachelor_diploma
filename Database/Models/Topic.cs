@@ -6,12 +6,12 @@ namespace Database.Models
 {
     public class Topic : EntityTopic
     {
-        public EntityTopic RemoveReferences() => new EntityTopic
+        public EntityTopic WithoutReferences() => new EntityTopic
         {
             Id = Id,
             Value = Value,
         };
-        public static EntityTopic RemoveReferences(Topic t) => t.RemoveReferences();
+        public static EntityTopic WithoutReferences(Topic t) => t.WithoutReferences();
         public virtual ICollection<Subtopic> Subtopic { get; set; }
     }
 }
