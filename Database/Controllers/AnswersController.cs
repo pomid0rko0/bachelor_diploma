@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Database.Data;
 using Database.Models;
+using Database.Domain;
 
 namespace Database.Controllers
 {
@@ -23,7 +24,7 @@ namespace Database.Controllers
 
         [HttpGet("get/{id}/questions")]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<Entity>> GetQuestion(int id)
+        public ActionResult<IEnumerable<EntityQuestion>> GetQuestion(int id)
         {
             try
             {
@@ -44,28 +45,47 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Post([FromBody, Required] string answerText)
+        public ActionResult<EntityAnswer> Post([FromBody, Required] AddAnswerRequest Answer)
         {
-            bool alreadyExists = Select().Any(a => answerText.ToLower() == a.Value.ToLower());
+            bool alreadyExists = Select().Any(a => Answer.Text.ToLower() == a.Value.ToLower());
             if (alreadyExists)
             {
                 return BadRequest("Already exists");
             }
             var answer = new Answer
             {
-                Value = answerText,
+                Value = Answer.Text,
+                FullAnswerUrl = Answer.Url,
                 Question = new List<Question>()
             };
             _context.Answers.Add(answer);
             _context.SaveChanges();
-            return new Entity { Id = answer.Id, Value = answer.Value };
+            return new EntityAnswer { Id = answer.Id, Value = answer.Value, FullAnswerUrl = answer.FullAnswerUrl };
         }
 
+        [HttpPut("update/{id}/full_answer_url")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<EntityAnswer> UpdateFullAnswerUrl([Required] int id, [FromBody, Required] string fullAnswerUrl)
+        {
+            try
+            {
+                var a = Select().First(a => a.Id == id);
+                a.FullAnswerUrl = fullAnswerUrl;
+                _context.SaveChanges();
+                return new EntityAnswer { Id = a.Id, Value = a.Value, FullAnswerUrl = a.FullAnswerUrl };
+            }
+            catch
+            {
+                return NotFound("Not found");
+            }
+        }
+        
         [HttpDelete("delete/{answerId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<Entity> Delete(int answerId)
+        public ActionResult<EntityAnswer> Delete(int answerId)
         {
             Answer answer = null;
             try
@@ -84,7 +104,7 @@ namespace Database.Controllers
             }
             _context.Answers.Remove(answer);
             _context.SaveChanges();
-            return new Entity { Id = answer.Id, Value = answer.Value };
+            return new EntityAnswer { Id = answer.Id, Value = answer.Value };
         }
     }
 }
