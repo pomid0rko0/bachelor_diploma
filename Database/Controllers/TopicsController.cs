@@ -22,16 +22,16 @@ namespace Database.Controllers
         {
         }
 
-        [HttpGet("get/{topicId}/subtopics")]
+        [HttpGet("get/{id}/subtopics")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<EntitySubtopic>> GetSubtopics(int topicId)
+        public ActionResult<IEnumerable<EntitySubtopic>> GetSubtopics(int id)
         {
             try
             {
                 return Select()
                     .Include(t => t.Subtopic)
-                    .First(t => t.Id == topicId)
+                    .First(t => t.Id == id)
                     .Subtopic
                     .Select(Subtopic.WithoutReferences)
                     .ToList();
@@ -62,18 +62,18 @@ namespace Database.Controllers
             return topic.WithoutReferences();
         }
 
-        [HttpDelete("delete/{topicId}")]
+        [HttpDelete("delete/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<EntityTopic> Delete(int topicId)
+        public ActionResult<EntityTopic> Delete(int id)
         {
             Topic topic = null;
             try
             {
                 topic = Select()
                     .Include(t => t.Subtopic.Take(1))
-                    .First(t => t.Id == topicId);
+                    .First(t => t.Id == id);
             }
             catch (Exception)
             {

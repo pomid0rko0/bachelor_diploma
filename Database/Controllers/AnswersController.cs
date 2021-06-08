@@ -86,14 +86,14 @@ namespace Database.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<EntityAnswer> Delete(int answerId)
+        public ActionResult<EntityAnswer> Delete(int id)
         {
             Answer answer = null;
             try
             {
                 answer = Select()
                     .Include(a => a.Question)
-                    .First(a => answerId == a.Id);
+                    .First(a => id == a.Id);
             }
             catch (Exception)
             {

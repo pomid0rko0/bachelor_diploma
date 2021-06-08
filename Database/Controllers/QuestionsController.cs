@@ -25,13 +25,13 @@ namespace Database.Controllers
         [HttpGet("get/{id}/subtopic")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<EntitySubtopic> GetQuestionSubtopic(int questionId)
+        public ActionResult<EntitySubtopic> GetQuestionSubtopic(int id)
         {
             try
             {
                 return Select()
                     .Include(q => q.Subtopic)
-                    .First(q => q.Id == questionId)
+                    .First(q => q.Id == id)
                     .Subtopic
                     .WithoutReferences();
 
@@ -45,13 +45,13 @@ namespace Database.Controllers
         [HttpGet("get/{id}/answer")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<EntityAnswer> GetQuestionAnswer(int questionId)
+        public ActionResult<EntityAnswer> GetQuestionAnswer(int id)
         {
             try
             {
                 return Select()
                     .Include(q => q.Answer)
-                    .First(q => q.Id == questionId)
+                    .First(q => q.Id == id)
                     .Answer
                     .WithoutReferences();
             }
@@ -155,18 +155,18 @@ namespace Database.Controllers
             }
         }
 
-        [HttpDelete("delete/{questionId}")]
+        [HttpDelete("delete/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<EntityQuestion> Delete(int questionId)
+        public ActionResult<EntityQuestion> Delete(int id)
         {
             Question question = null;
             try
             {
                 question = Select()
                     .Include(q => q.Answer)
-                    .First(q => questionId == q.Id);
+                    .First(q => id == q.Id);
             }
             catch (Exception)
             {

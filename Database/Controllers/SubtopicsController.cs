@@ -22,16 +22,16 @@ namespace Database.Controllers
         {
         }
 
-        [HttpGet("get/{subtopicId}/topic")]
+        [HttpGet("get/{id}/topic")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<EntityTopic> GetSubtopicTopic(int subtopicId)
+        public ActionResult<EntityTopic> GetSubtopicTopic(int id)
         {
             try
             {
                 return Select()
                     .Include(st => st.Topic)
-                    .First(st => st.Id == subtopicId)
+                    .First(st => st.Id == id)
                     .Topic
                     .WithoutReferences();
             }
@@ -41,16 +41,16 @@ namespace Database.Controllers
             }
         }
 
-        [HttpGet("get/{subtopicId}/questions")]
+        [HttpGet("get/{id}/questions")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public ActionResult<IEnumerable<EntityQuestion>> GetQuestions(int subtopicId)
+        public ActionResult<IEnumerable<EntityQuestion>> GetQuestions(int id)
         {
             try
             {
                 return Select()
                     .Include(st => st.Question)
-                    .First(st => st.Id == subtopicId)
+                    .First(st => st.Id == id)
                     .Question
                     .Select(Question.WithoutReferences)
                     .ToList();
@@ -98,18 +98,18 @@ namespace Database.Controllers
             return subtopic.WithoutReferences();
         }
 
-        [HttpDelete("delete/{subtopicId}")]
+        [HttpDelete("delete/{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public ActionResult<EntitySubtopic> Delete(int subtopicId)
+        public ActionResult<EntitySubtopic> Delete(int id)
         {
             Subtopic subtopic = null;
             try
             {
                 subtopic = Select()
                     .Include(st => st.Question.Take(1))
-                    .First(st => st.Id == subtopicId);
+                    .First(st => st.Id == id);
             }
             catch (Exception)
             {
