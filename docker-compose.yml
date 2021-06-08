@@ -10,8 +10,8 @@ services:
       POSTGRES_PASSWORD: NSTUChatbot
       POSTGRES_DB: NSTUChatbotDatabase
 
-  chatbotapi:
-    image: chatbotapi:latest
+  dpapi:
+    image: dpapi:latest
     environment:
       migrateOnStartup: "true"
       NLU_HOST: nlu
@@ -42,6 +42,14 @@ services:
       SPELLING_MODEL_FILE: ru_nstu_chatbot.bin
     ports:
       - "5005"
+  
+  chatbot:
+    image: chatbot
+    build: ./tgbot_v2
+    depends_on:
+      - db_api
+    environment:
+      DB_API_HOST: http://dbapi
     
 volumes:
   nlu:
