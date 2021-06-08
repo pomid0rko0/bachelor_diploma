@@ -61,6 +61,27 @@ namespace Database.Controllers
             }
         }
 
+        [HttpGet("get/{id}/ui_questions")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public ActionResult<IEnumerable<EntityQuestion>> GetUiQuestions(int id)
+        {
+            try
+            {
+                return Select()
+                    .Include(st => st.Question)
+                    .First(st => st.Id == id)
+                    .Question
+                    .Where(q => q.IsUiQuestion)
+                    .Select(Question.WithoutReferences)
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return NotFound("Not found");
+            }
+        }
+
         [HttpPost("add")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
