@@ -1,2 +1,2 @@
-TOKEN = "1800662924:AAFc3gyRHetylZXdGsDgeZOw7Iu9AYZNr30"
+TOKEN = "token there"
 CHATID = '-506322823'
