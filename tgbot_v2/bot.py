@@ -5,8 +5,10 @@ import DB
 import re
 import requests as r
 import json
+import os
 
-from config import TOKEN, CHATID
+TOKEN = os.environ["TG_TOKEN"]
+CHATID = os.environ["TG_CHAT_ID"]
 
 switch = 0
 
