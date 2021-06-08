@@ -5,17 +5,12 @@ import DB
 import re
 import requests as r
 import json
-import os
 
-TOKEN = os.environ["TG_TOKEN"]
-CHATID = os.environ["TG_CHAT_ID"]
-DB_API = DB.DB_API
-
-switch = 0
+from config import TOKEN, CHATID
 
 bot = telebot.TeleBot(TOKEN)
 print('-----BOT STARTED-----')
-temptoken = DB.gentempkey()
+temptoken, expiretime = DB.gentempkey()
 print('-----AUTH DONE-----')
 
 
@@ -24,8 +19,14 @@ def start_handler(message):
     user_info = message.from_user.to_dict()
     DB.users.update({message.chat.id:0})
     bot.send_message(CHATID, text = f"""*Connected new user*\n {user_info}.""", parse_mode= 'Markdown')
-    url = f'{DB_API}/Topics/get/all?offset=0&size=1000'
-    btntxt, btnclbc = DB.gethandler(url, temptoken)
+    if expiretime > DB.datetime.datetime.now():
+        url = 'http://217.71.129.139:4500/Topics/get/all?offset=0&size=1000'
+        btntxt, btnclbc = DB.gethandler(url, temptoken)
+    else:
+        temptoken[:], expiretime[:] = DB.gentempkey()
+        url = 'http://217.71.129.139:4500/Topics/get/all?offset=0&size=1000'
+        btntxt, btnclbc = DB.gethandler(url, temptoken)
+
     bot.send_message(message.chat.id, 'Вас приветствует бот-помощник НГТУ!')
     genmessage = 'Выберите тему, которая вас интересует:\n'
     i = 0
@@ -55,8 +56,13 @@ def allcallbacks_handler(call):
     print(call.data)
     if call.data[0] == 't':
         topic_id = re.sub('\D', '', call.data)
-        url = f'{DB_API}/Topics/get/' + topic_id + '/subtopics'
-        btntxt, btnclbc = DB.gethandler(url, temptoken)
+        if expiretime > DB.datetime.datetime.now():
+            url = 'http://217.71.129.139:4500/Topics/get/' + topic_id + '/subtopics'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
+        else:
+            temptoken[:], expiretime[:] = DB.gentempkey()
+            url = 'http://217.71.129.139:4500/Topics/get/' + topic_id + '/subtopics'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
         genmessage = 'Выберите тему, которая вас интересует:\n'
         i = 0
         while i<len(btntxt):
@@ -67,11 +73,22 @@ def allcallbacks_handler(call):
 
     if call.data[0] == 's':
         subtopic_id = re.sub('\D', '', call.data)
-        url = f'{DB_API}/Subtopics/get/' + subtopic_id + '/questions'
-        btntxt, btnclbc = DB.gethandler(url, temptoken)
-        url2 = f'{DB_API}/Subtopics/get/' + subtopic_id + '/topic'
-        headers = {'Accept': 'text/plain', 'Authorization': 'Bearer ' + temptoken}
-        request = json.loads((r.get(url2, headers = headers)).text)
+        if expiretime > DB.datetime.datetime.now():
+            url = 'http://217.71.129.139:4500/Subtopics/get/' + subtopic_id + '/questions'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
+        else:
+            temptoken[:], expiretime[:] = DB.gentempkey()
+            url = 'http://217.71.129.139:4500/Subtopics/get/' + subtopic_id + '/questions'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
+        if expiretime > DB.datetime.datetime.now():
+            url2 = 'http://217.71.129.139:4500/Subtopics/get/' + subtopic_id + '/topic'
+            headers = {'Accept': 'text/plain', 'Authorization': 'Bearer ' + temptoken}
+            request = json.loads((r.get(url2, headers=headers)).text)
+        else:
+            temptoken[:], expiretime[:] = DB.gentempkey()
+            url2 = 'http://217.71.129.139:4500/Subtopics/get/' + subtopic_id + '/topic'
+            headers = {'Accept': 'text/plain', 'Authorization': 'Bearer ' + temptoken}
+            request = json.loads((r.get(url2, headers=headers)).text)
         previousID = request["id"]
         genmessage = 'Выберите тему, которая вас интересует:\n'
         i = 0
@@ -84,21 +101,26 @@ def allcallbacks_handler(call):
 
     if call.data[0] == 'q':
         question_id = re.sub('\D', '', call.data)
-        url = f'{DB_API}/Questions/get/' + question_id + '/answer'
+        url = 'http://217.71.129.139:4500/Questions/get/' + question_id + '/answer'
         headers = {'Accept': 'text/plain', 'Authorization': 'Bearer ' + temptoken}
         requestvalue = json.loads((r.get(url, headers=headers)).text)["value"]
         print(requestvalue)
-        url2 = f'{DB_API}/Questions/get/' + question_id + '/subtopic'
+        url2 = 'http://217.71.129.139:4500/Questions/get/' + question_id + '/subtopic'
         previousID = json.loads((r.get(url2, headers=headers)).text)["id"]
-        url3 = f'{DB_API}/Questions/get/' + question_id
+        url3 = 'http://217.71.129.139:4500/Questions/get/' + question_id
         questiontext = json.loads((r.get(url3, headers=headers)).text)["value"]
         genmessage = 'Ваш вопрос:\n*' + questiontext + '*\nВаш ответ:\n*' + requestvalue + '*'
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_additional_markup(3, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 'a':
-        url = f'{DB_API}/Topics/get/all?offset=0&size=1000'
-        btntxt, btnclbc = DB.gethandler(url, temptoken)
+        if expiretime > DB.datetime.datetime.now():
+            url = 'http://217.71.129.139:4500/Topics/get/all?offset=0&size=1000'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
+        else:
+            temptoken[:], expiretime[:] = DB.gentempkey()
+            url = 'http://217.71.129.139:4500/Topics/get/all?offset=0&size=1000'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
         genmessage = 'Выберите тему, которая вас интересует:\n'
         i = 0
         while i < len(btntxt):
@@ -109,15 +131,20 @@ def allcallbacks_handler(call):
 
     if call.data[0] == 'b':
         topic_id = re.sub('\D', '', call.data)
-        url = f'{DB_API}/Topics/get/' + topic_id + '/subtopics'
-        btntxt, btnclbc = DB.gethandler(url, temptoken)
+        if expiretime > DB.datetime.datetime.now():
+            url = 'http://217.71.129.139:4500/Topics/get/' + topic_id + '/subtopics'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
+        else:
+            temptoken[:], expiretime[:] = DB.gentempkey()
+            url = 'http://217.71.129.139:4500/Topics/get/' + topic_id + '/subtopics'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
         genmessage = 'Выберите тему, которая вас интересует:\n'
         i = 0
         while i < len(btntxt):
             genmessage += str(i + 1) + '. *' + btntxt[i] + '*\n'
             i += 1
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 2, -1, -1), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 2, -1), parse_mode= 'Markdown')
 
     if call.data == 'gotosupport':
         genmessage = 'Отправьте в чат *вопрос*, который вас интересует:\n'
@@ -130,8 +157,13 @@ def allcallbacks_handler(call):
     if call.data == '/start':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text, parse_mode ='Markdown')
         DB.users.update({call.message.chat.id: 0})
-        url = f'{DB_API}/Topics/get/all?offset=0&size=1000'
-        btntxt, btnclbc = DB.gethandler(url, temptoken)
+        if expiretime > DB.datetime.datetime.now():
+            url = 'http://217.71.129.139:4500/Topics/get/all?offset=0&size=1000'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
+        else:
+            temptoken[:], expiretime[:] = DB.gentempkey()
+            url = 'http://217.71.129.139:4500/Topics/get/all?offset=0&size=1000'
+            btntxt, btnclbc = DB.gethandler(url, temptoken)
         genmessage = 'Выберите тему, которая вас интересует:\n'
         i = 0
         while i < len(btntxt):
