@@ -1,5 +1,7 @@
 import json
 import requests as r
+from config import ADMLOGIN, ADMPASS
+import datetime
 
 users = {}
 
@@ -19,7 +21,9 @@ def gethandler(url, temptoken):
 
 def gentempkey():
     url = 'http://217.71.129.139:4500/AuthManagement/Login'
-    data = {'email': 'legalov.2017@stud.nstu.ru', 'password': '~biSXA7SSU]pwI0x&1f'}
+    data = {'email': ADMLOGIN, 'password': ADMPASS}
     headers = {'Content-type': 'application/json', 'Accept': '*/*'}
     temptoken = json.loads(r.post(url, data=json.dumps(data), headers=headers).text)["token"]
-    return(temptoken)
+    added_seconds = datetime.timedelta(0, int(json.loads(r.post(url, data=json.dumps(data), headers=headers).text)["expires"]))
+    expiretime = datetime.datetime.now() + added_seconds
+    return (temptoken, expiretime)
