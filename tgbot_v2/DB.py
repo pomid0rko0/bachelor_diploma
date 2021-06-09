@@ -73,5 +73,5 @@ class Database:
     def question_get_subtopic(self, question_id):
         return self.get(f"/Questions/get/{question_id}/subtopic")
 
-    def parse(self, msg):
-        return "\n".join(r["text"] for r in self.post(endpoint=f"/Nlu/parse", json=f'"{msg}"'))
+    def parse(self, sender, message):
+        return "\n".join(r["text"] for r in self.post(endpoint=f"/Nlu/parse", json={ "sender": sender, "message": message }))

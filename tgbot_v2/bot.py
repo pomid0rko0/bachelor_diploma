@@ -45,7 +45,7 @@ def forward(message):
             parse_mode= 'Markdown', reply_markup=m.create_additional_markup(1, message.chat.id))
             bot.forward_message(CHATID, message.chat.id, message.id)
         else:
-            bot.send_message(message.chat.id, database.parse(message.text))
+            bot.send_message(message.chat.id, database.parse(message.chat.username, message.text))
     if message.chat.type == 'group':
         user_id = message.reply_to_message.forward_from.id
         bot.send_message(user_id, 'new answer from: *SUPPORT*', parse_mode='Markdown', reply_markup=m.create_additional_markup(2, user_id))
