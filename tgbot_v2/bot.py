@@ -93,7 +93,7 @@ def allcallbacks_handler(call):
         btnclbc, btntxt = unzip_id_value(database.topic_get_subotpics(topic_id))
         genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 2, -1, -1), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 2, -1), parse_mode= 'Markdown')
 
     if call.data == 'gotosupport':
         genmessage = 'Отправьте в чат *вопрос*, который вас интересует:\n'
