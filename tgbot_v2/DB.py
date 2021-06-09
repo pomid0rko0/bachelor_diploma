@@ -74,4 +74,4 @@ class Database:
         return self.get(f"/Questions/get/{question_id}/subtopic")
 
     def parse(self, msg):
-        return self.post(endpoint=f"/Nlu/parse", json=f'"{msg}"')["response_selector"]["default"]["response"]["responses"][0]["text"]
+        return "\n".join(r["text"] for r in self.post(endpoint=f"/Nlu/parse", json=f'"{msg}"'))

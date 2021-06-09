@@ -40,6 +40,7 @@ WORKDIR ${NLU_PATH}
 RUN if [ ! -d ./${JAMSPELL_FOLDER} ]; then mkdir ./${JAMSPELL_FOLDER}; fi
 RUN if [ ! -d ./${MODELS_FOLDER} ]; then mkdir ./${MODELS_FOLDER}; fi
 RUN mv /${JAMSPELL_FOLDER}/build/main/${SPELLING_MODEL_FILE} ${JAMSPELL_FOLDER}/${SPELLING_MODEL_FILE}
+COPY credentials.yml credentials.yml
 COPY spelling_correction.py spelling_correction.py
 COPY text_preprocessing.py text_preprocessing.py
 EXPOSE 5005

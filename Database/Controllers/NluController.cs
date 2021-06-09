@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 
 using Database.Data;
+using Database.Domain;
 
 namespace Database.Controllers
 {
@@ -67,12 +68,11 @@ namespace Database.Controllers
         }
 
         [HttpPost("parse")]
-        public async Task<Nlu.Api.Parse.ParseResult> Parse([FromBody] string text)
+        public async Task<ICollection<Nlu.Api.Parse.RestResponse>> Parse([FromBody] ParseRequest message)
         {
-            var data = new Dictionary<string, string> { { "text", text } };
-            var content = JsonContent.Create(data);
-            var response = await client.PostAsync("/model/parse", content);
-            return await response.Content.ReadFromJsonAsync<Nlu.Api.Parse.ParseResult>();
+            var content = JsonContent.Create(message);
+            var response = await client.PostAsync("/webhooks/rest/webhook", content);
+            return await response.Content.ReadFromJsonAsync<ICollection<Nlu.Api.Parse.RestResponse>>();
         }
 
         [HttpPost("test")]
@@ -142,20 +142,15 @@ namespace Database.Controllers
             {
                 Config = new DeserializerBuilder().Build().Deserialize<Nlu.Config>(reader.ReadToEnd());
             }
-            Config.intents = _context.Subtopics.Select(st => $"t{st.TopicId}_st{st.Id}").ToList();
+            Config.intents = _context.Answers.Select(a => $"a{a.Id}").ToList();
             Config.nlu = _context
-                .Answers
+                .Questions
                 .ToList()
-                .Join(
-                    _context.Questions.Include(q => q.Subtopic),
-                    a => a.Id,
-                    q => q.AnswerId,
-                    (a, q) => new
-                    {
-                        Intent = $"t{q.Subtopic.TopicId}_st{q.SubtopicId}/a{q.AnswerId}",
-                        Example = q.Value
-                    }
-                )
+                .Select(q => new
+                {
+                    Intent = $"a{q.AnswerId}",
+                    Example = q.Value
+                })
                 .GroupBy(i => i.Intent)
                 .Select(i => new Nlu.Config.Intent
                 {
@@ -166,16 +161,11 @@ namespace Database.Controllers
             var responses = _context
                 .Answers
                 .ToList()
-                .Join(
-                    _context.Questions.Include(q => q.Subtopic),
-                    a => a.Id,
-                    q => q.AnswerId,
-                    (a, q) => new
-                    {
-                        Action = $"utter_t{q.Subtopic.TopicId}_st{q.SubtopicId}/a{a.Id}",
-                        Answer = a.Value
-                    }
-                )
+                .Select(a => new
+                {
+                    Action = $"utter_a{a.Id}",
+                    Answer = a.Value
+                })
                 .GroupBy(r => r.Action)
                 .ToDictionary(
                     r => r.Key,
@@ -188,13 +178,13 @@ namespace Database.Controllers
                 .ToDictionary(r => r.Key, r => r.First());
 
             var rules = _context
-                .Subtopics
-                .Select(st => new Nlu.Config.Rule
+                .Answers
+                .Select(a => new Nlu.Config.Rule
                 {
-                    rule = $"t{st.TopicId}_st{st.Id}",
+                    rule = $"a{a.Id}",
                     steps = new List<object> {
-                            new { intent =  $"t{st.TopicId}_st{st.Id}" },
-                            new { action =  $"utter_t{st.TopicId}_st{st.Id}" }
+                            new { intent =  $"a{a.Id}" },
+                            new { action =  $"utter_a{a.Id}" }
                     }
                 });
             Config.rules = Config.rules.Concat(rules);
