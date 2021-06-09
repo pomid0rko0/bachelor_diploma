@@ -45,14 +45,7 @@ def forward(message):
             parse_mode= 'Markdown', reply_markup=m.create_additional_markup(1, message.chat.id))
             bot.forward_message(CHATID, message.chat.id, message.id)
         else:
-            print()
-            print(message)
-            print()
-            print()
-            print(message.text)
-            print()
-            bot.send_message(database.parse(message.text))
-            # bot.send_message(message.chat.id, 'я не понимаю, что ты от меня хочешь!')
+            bot.send_message(message.chat.id, database.parse(message.text))
     if message.chat.type == 'group':
         user_id = message.reply_to_message.forward_from.id
         bot.send_message(user_id, 'new answer from: *SUPPORT*', parse_mode='Markdown', reply_markup=m.create_additional_markup(2, user_id))
@@ -115,9 +108,6 @@ def allcallbacks_handler(call):
         DB.users.update({call.message.chat.id: 0})
         btnclbc, btntxt = unzip_id_value(database.get_topics())
         genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
-        print()
-        print(genmessage)
-        print()
         bot.send_message(call.message.chat.id, genmessage,
                          reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 1, -1), parse_mode='Markdown')
     if call.data[0] == 'c':

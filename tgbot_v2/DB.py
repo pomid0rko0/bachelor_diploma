@@ -38,26 +38,13 @@ class Database:
         self.auth = TokenAuth(auth_url, email, password)
 
     def request(self, method, endpoint, *args, **kwargs):
-        print("=========================")
-        print(method)
-        print(endpoint)
-        print(args)
-        print(kwargs)
-        print("=========================")
-        response = requests.request(
+        return requests.request(
             method=method, 
             url=self.db_host + endpoint, 
             auth=self.auth,
             *args,
             **kwargs,
-        )
-        print(response.url)
-        print(response.status_code)
-        print(response.text)
-        print(response.headers)
-        print(response.content)
-        print("=========================")
-        return response.json()
+        ).json()
 
     def get(self, endpoint, *args, **kwargs):
         return self.request(method="GET", endpoint=endpoint, *args, **kwargs)
