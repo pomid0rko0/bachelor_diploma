@@ -1,4 +1,6 @@
+import time
 import requests
+from requests.api import request
 from requests.auth import AuthBase
 import os
 from datetime import datetime, timedelta
@@ -36,8 +38,17 @@ class Database:
         email = os.environ["DB_API_USER"]
         password = os.environ["DB_API_PASSWORD"]
         self.auth = TokenAuth(auth_url, email, password)
+        self.is_ready = False
 
     def request(self, method, endpoint, *args, **kwargs):
+        while not self.is_ready:
+            try:
+                print(requests.get(self.db_host + "/Nlu/status").json())
+                self.is_ready = True
+            except Exception as e:
+                print(e)
+                time.sleep(10)
+
         return requests.request(
             method=method, 
             url=self.db_host + endpoint, 

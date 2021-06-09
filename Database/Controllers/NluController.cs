@@ -53,6 +53,7 @@ namespace Database.Controllers
             return await response.Content.ReadFromJsonAsync<Nlu.Api.Information.Version>();
         }
 
+        [AllowAnonymous]
         [HttpGet("status")]
         public async Task<Nlu.Api.Information.Status> Status()
         {
