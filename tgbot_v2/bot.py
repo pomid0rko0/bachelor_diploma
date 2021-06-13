@@ -74,11 +74,12 @@ def allcallbacks_handler(call):
         question_id = re.sub('\D', '', call.data)
         answer = database.question_get_answer(question_id)
         answervalue = answer["value"]
+        answerlink = answer["fullAnswerUrl"]
         subtopic = database.question_get_subtopic(question_id)
         previousID = subtopic["id"]
         question = database.question_get_question(question_id)
         questiontext = question["value"]
-        genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*"
+        genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\nПрочитать больше можно здесь:\n*{answerlink}*"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_additional_markup(3, -1), parse_mode= 'Markdown')
 
