@@ -18,16 +18,16 @@ class TokenAuth(AuthBase):
     def __call__(self, r):
         """Attach an API token to a custom auth header."""
         expire_date = self.auth_token["expire_date"]
-        try:
-            while expire_date <= datetime.utcnow():
-                response = requests.post(self.auth_url, json=self.auth_data).json()
-                token = response["token"]
-                expires = response["expires"]
-                expire_date = datetime.utcnow() + timedelta(seconds=expires - 30)
-                self.auth_token = { "token": token, "expire_date": expire_date }
-        except Exception as e:
-            print(e)
-            time.sleep(10)
+        while expire_date <= datetime.utcnow():
+            try:
+                    response = requests.post(self.auth_url, json=self.auth_data).json()
+                    token = response["token"]
+                    expires = response["expires"]
+                    expire_date = datetime.utcnow() + timedelta(seconds=expires - 30)
+                    self.auth_token = { "token": token, "expire_date": expire_date }
+            except Exception as e:
+                print(e)
+                time.sleep(10)
         r.headers["Authorization"] = f"Bearer {self.auth_token['token']}"
         return r
  
