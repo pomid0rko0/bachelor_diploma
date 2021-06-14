@@ -15,26 +15,18 @@ switch = 0
 bot = telebot.TeleBot(TOKEN)
 print('-----BOT STARTED-----')
 
-def unzip_id_value(arr):
-    ids = []
-    values = []
-    for obj in arr:
-        ids.append(obj["id"])
-        values.append(obj["value"])
-    return ids, values
-
 def make_text_list(arr):
-    return "\n".join(f"{i + 1}. *{text}*" for i, text in enumerate(arr))
+    return "\n".join(f"{i + 1}. *{text['value']}*" for i, text in enumerate(arr))
 
 @bot.message_handler(commands=['start', 'go'])
 def start_handler(message):
     user_info = message.from_user.to_dict()
     DB.users.update({message.chat.id:0})
     bot.send_message(CHATID, text = f"Connected new user:\n*{message.from_user}*", parse_mode= 'Markdown')
-    btnclbc, btntxt = unzip_id_value(database.get_topics())
-    genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
+    topics = database.get_topics()
+    genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
     bot.send_message(message.chat.id, genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 1, -1), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
 
 
 @bot.message_handler(content_types=["text"])
@@ -55,19 +47,19 @@ def forward(message):
 def allcallbacks_handler(call):
     if call.data[0] == 't':
         topic_id = re.sub('\D', '', call.data)
-        btnclbc, btntxt = unzip_id_value(database.topic_get_subotpics(topic_id))
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
+        subtopics = database.topic_get_subotpics(topic_id)
+        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 2, -1), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(subtopics, 2, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 's':
         subtopic_id = re.sub('\D', '', call.data)
-        btnclbc, btntxt = unzip_id_value(database.subtopic_get_questions(subtopic_id))
+        questions = database.subtopic_get_questions(subtopic_id)
         topic = database.subtopic_get_topic(subtopic_id)
         previousID = topic["id"]
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
+        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(questions)}\n"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 3, previousID), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(questions, 3, previousID), parse_mode= 'Markdown')
 
 
     if call.data[0] == 'q':
@@ -84,17 +76,17 @@ def allcallbacks_handler(call):
                      reply_markup=m.create_additional_markup(3, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 'a':
-        btnclbc, btntxt = unzip_id_value(database.get_topics())
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
+        topics = database.get_topics()
+        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 1, -1), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 'b':
         topic_id = re.sub('\D', '', call.data)
-        btnclbc, btntxt = unzip_id_value(database.topic_get_subotpics(topic_id))
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
+        subtopics = database.topic_get_subotpics(topic_id)
+        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 2, -1), parse_mode= 'Markdown')
+                     reply_markup=m.create_markup(subtopics, 2, -1), parse_mode= 'Markdown')
 
     if call.data == 'gotosupport':
         genmessage = 'Отправьте в чат *вопрос*, который вас интересует:\n'
@@ -107,10 +99,10 @@ def allcallbacks_handler(call):
     if call.data == '/start':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text, parse_mode ='Markdown')
         DB.users.update({call.message.chat.id: 0})
-        btnclbc, btntxt = unzip_id_value(database.get_topics())
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(btntxt)}\n"
+        topics = database.get_topics()
+        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
         bot.send_message(call.message.chat.id, genmessage,
-                         reply_markup=m.create_markup(btntxt, btnclbc, len(btntxt), 1, -1), parse_mode='Markdown')
+                         reply_markup=m.create_markup(topics, 1, -1), parse_mode='Markdown')
     if call.data[0] == 'c':
         userID = re.sub('\D', '', call.data)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
@@ -126,4 +118,3 @@ def allcallbacks_handler(call):
 
 
 bot.polling()
-

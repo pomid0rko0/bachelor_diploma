@@ -1,10 +1,10 @@
 from telebot import types
 
-def create_markup(texts, callbacks, leng, type, previousID):
+def create_markup(entities, type, previousID):
     if type == 1:
         markup = types.InlineKeyboardMarkup(row_width=1)
-        for text, callback in zip(texts, callbacks):
-            markup_btn = types.InlineKeyboardButton(text=text, callback_data='t' + str(callback))
+        for entity in entities:
+            markup_btn = types.InlineKeyboardButton(text=entity["value"], callback_data='t' + str(entity["id"]))
             markup.add(markup_btn)
 
         markup_btn = types.InlineKeyboardButton(text='📖ОБРАТИТЬСЯ В ПОДДЕРЖКУ', callback_data='gotosupport')
@@ -12,8 +12,8 @@ def create_markup(texts, callbacks, leng, type, previousID):
         print('-----MARKUP LISTED-----')
     if type == 2:
         markup = types.InlineKeyboardMarkup(row_width=1)
-        for text, callback in zip(texts, callbacks):
-            markup_btn = types.InlineKeyboardButton(text=text, callback_data='s' + str(callback))
+        for entity in entities:
+            markup_btn = types.InlineKeyboardButton(text=entity["value"], callback_data='s' + str(entity["id"]))
             markup.add(markup_btn)
 
         markup_btn = types.InlineKeyboardButton(text ='↩️ВЕРНУТЬСЯ НАЗАД', callback_data ='a' + str(previousID))
@@ -23,8 +23,8 @@ def create_markup(texts, callbacks, leng, type, previousID):
         print('-----MARKUP LISTED-----')
     if type == 3:
         markup = types.InlineKeyboardMarkup(row_width=1)
-        for text, callback in zip(texts, callbacks):
-            markup_btn = types.InlineKeyboardButton(text=text, callback_data='q' + str(callback))
+        for entity in entities:
+            markup_btn = types.InlineKeyboardButton(text=entity["value"], callback_data='q' + str(entity["id"]))
             markup.add(markup_btn)
 
         markup_btn = types.InlineKeyboardButton(text='↩️ВЕРНУТЬСЯ НАЗАД', callback_data='b' + str(previousID))
