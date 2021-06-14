@@ -79,7 +79,7 @@ def allcallbacks_handler(call):
         previousID = subtopic["id"]
         question = database.question_get_question(question_id)
         questiontext = question["value"]
-        genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\nПрочитать больше можно здесь:\n*{answerlink}*"
+        genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\n[Прочитать больше]({answerlink})"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_additional_markup(3, -1), parse_mode= 'Markdown')
 
