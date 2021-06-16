@@ -2,7 +2,10 @@
 
 ## Установка
 
-1. Склонировать этот репозиторий `git clone https://github.com/pomid0rko0/bachelor_diploma.git`
+1. Склонировать этот репозиторий
+   ```bash
+   git clone https://github.com/pomid0rko0/bachelor_diploma.git
+   ```
 2. [Установить docker engine](https://docs.docker.com/engine/install/ubuntu/)
 3. **Linux-only** [Установить docker-compose](https://docs.docker.com/compose/install/)
 
