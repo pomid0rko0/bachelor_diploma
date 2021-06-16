@@ -42,10 +42,12 @@ curl http://localhost:5005/AuthManagement/RegisterFirst
 
 ## Доступ
 
-API:  
+### API
+
 http://localhost:5005/swagger - swagger, там есть достаточно подробное описание имеющихся методов и там же их можно выполнить вручную.
 
-Чат-бот:  
+### Чат-бот
+
 В телеграмме написать `/start` боту [@NSTUtest2bot](https://t.me/NSTUtest2bot)
 
 ## Остановка
