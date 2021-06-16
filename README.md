@@ -12,18 +12,16 @@
 docker-compose up --build
 ```
 
-## Доступ
+Или дял запуска в "тихом" режиме (без вывода логов)
 
-NLU:  
-http://localhost:5005 - проверить работоспособность  
-http://localhost:5005/model/parse - POST-запрос json-объекта с полем `text`, содержащий строку для классификации. Например:
-
-```bash
-curl --header "Content-Type: application/json" \
-    --request POST \
-    --data "{\"text\":\"пользовательский ввод\"}" \
-    http://localhost:5005/model/parse
+```
+docker-compose up --build --detach
 ```
 
+## Доступ
+
 API:  
-http://localhost:5004/swagger - swagger, там есть достаточно подробное описание имеющихся методов и там же их можно выполнить вручную.
+http://localhost:5005/swagger - swagger, там есть достаточно подробное описание имеющихся методов и там же их можно выполнить вручную.
+
+Чат-бот:  
+В телеграмме написать `/start` боту @NSTUtest2bot
