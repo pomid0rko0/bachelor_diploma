@@ -18,9 +18,12 @@ token = requests.post(f"{host}/AuthManagement/Login/", json={
 }).json()["token"]
 
 for X in ["Questions", "Answers", "Subtopics", "Topics"]:
-    es = requests.get(f"{host}/{X}/get/all", params={ "offset": 0, "size": 1000 }, headers={ "Authorization": f'Bearer {token}' }).json()
-    for e in es:
-        requests.delete(f"{host}/{X}/delete/{e['id']}", headers={ "Authorization": f'Bearer {token}' })
+    while True:
+        es = requests.get(f"{host}/{X}/get/all", params={ "offset": 0, "size": 1000 }, headers={ "Authorization": f'Bearer {token}' }).json()
+        if len(es) == 0:
+            break
+        for e in es:
+            requests.delete(f"{host}/{X}/delete/{e['id']}", headers={ "Authorization": f'Bearer {token}' })
 
 prev_topic = ""
 prev_subtopic = ""
@@ -35,7 +38,6 @@ for index, row in data.iterrows():
     answer = row["answer"]
     question = row["question"]
     regex_question = row["regex_question"]
-    response = None
     if topic != prev_topic:
         topic_id = requests.post(f"{host}/Topics/add", json=topic, headers={ "Authorization": f'Bearer {token}' }).json()["id"]
         prev_topic = topic
