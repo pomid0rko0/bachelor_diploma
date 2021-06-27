@@ -20,14 +20,14 @@ class TokenAuth(AuthBase):
         expire_date = self.auth_token["expire_date"]
         while expire_date <= datetime.utcnow():
             try:
-                    response = requests.post(self.auth_url, json=self.auth_data).json()
-                    token = response["token"]
-                    expires = response["expires"]
-                    expire_date = datetime.utcnow() + timedelta(seconds=expires - 30)
-                    self.auth_token = { "token": token, "expire_date": expire_date }
+                response = requests.post(self.auth_url, json=self.auth_data).json()
+                token = response["token"]
+                expires = response["expires"]
+                expire_date = datetime.utcnow() + timedelta(seconds=expires - 30)
             except Exception as e:
                 print(e)
                 time.sleep(10)
+        self.auth_token = { "token": token, "expire_date": expire_date }
         r.headers["Authorization"] = f"Bearer {self.auth_token['token']}"
         return r
  
