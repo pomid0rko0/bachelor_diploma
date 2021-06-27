@@ -46,7 +46,7 @@ def start_handler(message):
 
 @bot.message_handler(commands=['userinfo'])
 def userinfo(message):
-    userid = message.replace('/userinfo', '').strip()
+    userid = message.text.replace('/userinfo', '').strip()
     info = nstuapi.check_abit(userid)
     userinfomsg = "Извините, такого пользователя не знаю!"
     if "NAME" in info:
