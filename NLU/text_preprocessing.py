@@ -73,9 +73,11 @@ class TextPreprocessor(Component):
         of components previous to this one."""
 
         text = message.data["text"]
-        message.data["originalText"] = text
-        text = re.sub(r"[^а-яА-ЯёЁ\d\s]", " ", text.lower().strip())
-        message.data["text"] = re.sub(r"\s+", " ", text.strip())
+        message.data["originalText"] = str(text)
+        text = str(text).lower().replace("ё", "е")
+        text = re.sub(r"[^а-я\d\s]", " ", text.strip())
+        text = re.sub(r"\s+", " ", text.strip())
+        message.data["text"] = text
 
     def persist(self, file_name: Text, model_dir: Text) -> Optional[Dict[Text, Any]]:
         """Persist this component to disk for future loading."""
