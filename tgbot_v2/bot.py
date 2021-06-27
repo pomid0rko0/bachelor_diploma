@@ -32,8 +32,12 @@ def start_handler(message):
     user_info = message.from_user.to_dict()
     DB.users.update({message.chat.id:0})
     bot.send_message(CHATID, text = f"Connected new user:\n*{message.from_user}*", parse_mode= 'Markdown')
-    topics = database.get_topics()
-    genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+    genmessage = None
+    try:
+        topics = database.get_topics()
+        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+    except:
+        genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
     bot.send_message(message.chat.id, genmessage,
                      reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
 
@@ -59,7 +63,12 @@ def forward(message):
             parse_mode= 'Markdown', reply_markup=m.create_additional_markup(1, message.chat.id))
             bot.forward_message(CHATID, message.chat.id, message.id)
         else:
-            bot.send_message(message.chat.id, database.parse(message.chat.username, message.text))
+            genmessage = None
+            try:
+                genmessage = database.parse(message.chat.username, message.text)
+            except:
+                genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
+            bot.send_message(message.chat.id, text=genmessage)
     if message.chat.type == 'group':
         user_id = message.reply_to_message.forward_from.id
         bot.send_message(user_id, 'new answer from: *SUPPORT*', parse_mode='Markdown', reply_markup=m.create_additional_markup(2, user_id))
@@ -69,44 +78,64 @@ def forward(message):
 def allcallbacks_handler(call):
     if call.data[0] == 't':
         topic_id = re.sub('\D', '', call.data)
-        subtopics = database.topic_get_subotpics(topic_id)
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
+        genmessage = None
+        try:
+            subtopics = database.topic_get_subotpics(topic_id)
+            genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
+        except:
+            genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_markup(subtopics, 2, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 's':
         subtopic_id = re.sub('\D', '', call.data)
-        questions = database.subtopic_get_questions(subtopic_id)
-        topic = database.subtopic_get_topic(subtopic_id)
-        previousID = topic["id"]
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(questions)}\n"
+        genmessage = None
+        try:
+            questions = database.subtopic_get_questions(subtopic_id)
+            topic = database.subtopic_get_topic(subtopic_id)
+            previousID = topic["id"]
+            genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(questions)}\n"
+        except:
+            genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_markup(questions, 3, previousID), parse_mode= 'Markdown')
 
 
     if call.data[0] == 'q':
         question_id = re.sub('\D', '', call.data)
-        answer = database.question_get_answer(question_id)
-        answervalue = answer["value"]
-        answerlink = answer["fullAnswerUrl"]
-        subtopic = database.question_get_subtopic(question_id)
-        previousID = subtopic["id"]
-        question = database.question_get_question(question_id)
-        questiontext = question["value"]
-        genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\n[Прочитать больше]({answerlink})"
+        genmessage = None
+        try:
+            answer = database.question_get_answer(question_id)
+            answervalue = answer["value"]
+            answerlink = answer["fullAnswerUrl"]
+            subtopic = database.question_get_subtopic(question_id)
+            previousID = subtopic["id"]
+            question = database.question_get_question(question_id)
+            questiontext = question["value"]
+            genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\n[Прочитать больше]({answerlink})"
+        except:
+            genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_additional_markup(3, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 'a':
-        topics = database.get_topics()
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+        genmessage = None
+        try:
+            topics = database.get_topics()
+            genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+        except:
+            genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
 
     if call.data[0] == 'b':
         topic_id = re.sub('\D', '', call.data)
-        subtopics = database.topic_get_subotpics(topic_id)
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
+        genmessage = None
+        try:
+            subtopics = database.topic_get_subotpics(topic_id)
+            genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
+        except:
+            genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=m.create_markup(subtopics, 2, -1), parse_mode= 'Markdown')
 
@@ -121,8 +150,12 @@ def allcallbacks_handler(call):
     if call.data == '/start':
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text, parse_mode ='Markdown')
         DB.users.update({call.message.chat.id: 0})
-        topics = database.get_topics()
-        genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+        genmessage = None
+        try:
+            topics = database.get_topics()
+            genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+        except:
+            genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.send_message(call.message.chat.id, genmessage,
                          reply_markup=m.create_markup(topics, 1, -1), parse_mode='Markdown')
     if call.data[0] == 'c':
