@@ -9,6 +9,7 @@ TOKEN = os.environ["TG_TOKEN"]
 CHATID = os.environ["TG_CHAT_ID"]
 
 database = DB.Database()
+nstuapi = nstu_api.NstuApi
 
 switch = 0
 
@@ -28,6 +29,17 @@ def start_handler(message):
     bot.send_message(message.chat.id, genmessage,
                      reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
 
+@bot.message_handler(commands=['userinfo'])
+def userinfo(message):
+    userid = message.replace('/userinfo', '').strip()
+    info = nstuapi.check_abit(userid)
+    userinfomsg = f"Статус: *{info['STATUS'].encode('ascii').decode('unicode_escape')}*\n " \
+                f"Имя: *{info['NAME'].encode('ascii').decode('unicode_escape')}*\n" \
+                f"Заочная форма обучения: *{ 'Нет' if int(info['IS_ZAOCH']) == 0 else 'Да'}*\n" \
+                f"Иностранный студент: *{ 'Нет' if int(info['IS_FOREIGN']) == 0 else 'Да'}*\n" \
+                f"Имеются льготы: *{ 'Нет' if int(info['IS_LGOTA']) == 0 else 'Да'}*\n" \
+                f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"    
+    bot.send_message(CHATID, userinfomsg, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
 def forward(message):
