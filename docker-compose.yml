@@ -6,7 +6,7 @@ services:
       - "5432"
     restart: always
     volumes:
-      - ./Postgres/data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: NSTUChatbot
       POSTGRES_PASSWORD: NSTUChatbot
@@ -44,7 +44,7 @@ services:
       SPELLING_MODEL_FILE: ru_nstu_chatbot.bin
     ports:
       - "5005"
-  
+
   chatbot:
     image: chatbot
     build: ./tgbot_v2
@@ -55,3 +55,6 @@ services:
     environment:
       DB_API_HOST: http://dbapi:8000
       NSTU_API_HOST: https://api.ciu.nstu.ru
+
+volumes:
+  pgdata:
