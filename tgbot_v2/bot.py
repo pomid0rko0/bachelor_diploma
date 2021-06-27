@@ -34,12 +34,14 @@ def start_handler(message):
 def userinfo(message):
     userid = message.replace('/userinfo', '').strip()
     info = nstuapi.check_abit(userid)
-    userinfomsg = f"Статус: *{info['STATUS'].encode('ascii').decode('unicode_escape')}*\n " \
-                f"Имя: *{info['NAME'].encode('ascii').decode('unicode_escape')}*\n" \
-                f"Заочная форма обучения: *{ 'Нет' if int(info['IS_ZAOCH']) == 0 else 'Да'}*\n" \
-                f"Иностранный студент: *{ 'Нет' if int(info['IS_FOREIGN']) == 0 else 'Да'}*\n" \
-                f"Имеются льготы: *{ 'Нет' if int(info['IS_LGOTA']) == 0 else 'Да'}*\n" \
-                f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"    
+    userinfomsg = "Извините, такого пользователя не знаю!"
+    if "NAME" in info:
+        userinfomsg = f"Статус: *{info['STATUS'].encode('ascii').decode('unicode_escape')}*\n " \
+                    f"Имя: *{info['NAME'].encode('ascii').decode('unicode_escape')}*\n" \
+                    f"Заочная форма обучения: *{ 'Нет' if int(info['IS_ZAOCH']) == 0 else 'Да'}*\n" \
+                    f"Иностранный студент: *{ 'Нет' if int(info['IS_FOREIGN']) == 0 else 'Да'}*\n" \
+                    f"Имеются льготы: *{ 'Нет' if int(info['IS_LGOTA']) == 0 else 'Да'}*\n" \
+                    f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"    
     bot.send_message(CHATID, userinfomsg, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
