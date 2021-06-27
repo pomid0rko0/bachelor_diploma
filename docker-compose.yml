@@ -5,6 +5,8 @@ services:
     ports:
       - "5432"
     restart: always
+    volumes:
+      - ./Postgres/var/lib/postgresql:/var/lib/postgresql
     environment:
       POSTGRES_USER: NSTUChatbot
       POSTGRES_PASSWORD: NSTUChatbot
@@ -52,6 +54,4 @@ services:
       - dbapi
     environment:
       DB_API_HOST: http://dbapi:8000
-    
-volumes:
-  nlu:
+      NSTU_API_HOST: https://api.ciu.nstu.ru
