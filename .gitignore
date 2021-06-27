@@ -329,3 +329,6 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# postgresql data
+data/**
