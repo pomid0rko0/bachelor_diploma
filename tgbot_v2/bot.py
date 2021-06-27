@@ -132,5 +132,5 @@ def allcallbacks_handler(call):
 while True:
     try:
         bot.polling()
-    except:
-        pass
+    except Exception as e:
+        print(e)
