@@ -49,7 +49,7 @@ def userinfo(message):
     userid = re.sub(r"[^A-Z\d]", "", message.text)
     print("userid:", userid, flush=True)
     bot.send_message(CHATID, text = f"User:\n*{message.from_user}* requested *{userid}*", parse_mode= 'Markdown')
-    info = nstuapi.check_abit(userid)
+    info = nstuapi.check_abit(userid)[0]
     print("info:", info, flush=True)
     if "NAME" in info:
         userinfomsg = f"Статус: *{info['STATUS'].encode('ascii').decode('unicode_escape')}*\n " \
