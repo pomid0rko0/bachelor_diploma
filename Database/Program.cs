@@ -19,21 +19,28 @@ namespace Database
             bool migrateOnStartup = Boolean.Parse(Environment.GetEnvironmentVariable("migrateOnStartup") ?? "false");
             if (migrateOnStartup)
             {
-                using (var scope = host.Services.CreateScope())
+                try
                 {
-                    var services = scope.ServiceProvider;
-                    try
+                    using (var scope = host.Services.CreateScope())
                     {
-                        var Database = services.GetRequiredService<QAContext>().Database;
-                        while (!Database.CanConnect()) ;
-                        Database.Migrate();
+                        var services = scope.ServiceProvider;
+                        try
+                        {
+                            var Database = services.GetRequiredService<QAContext>().Database;
+                            while (!Database.CanConnect()) ;
+                            Database.Migrate();
+                        }
+                        catch (Exception ex)
+                        {
+                            services
+                                .GetRequiredService<ILogger<Program>>()
+                                .LogError(ex, "An error occurred while migrating the database.");
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        services
-                            .GetRequiredService<ILogger<Program>>()
-                            .LogError(ex, "An error occurred while migrating the database.");
-                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error while migrate on startup:", e);
                 }
             }
             host.Run();
