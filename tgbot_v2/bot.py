@@ -1,3 +1,5 @@
+print('-----STARTING BOT-----')
+
 import telebot
 
 import markups as m
@@ -9,7 +11,12 @@ import nstu_api
 TOKEN = os.environ["TG_TOKEN"]
 CHATID = os.environ["TG_CHAT_ID"]
 
+print('-----CONNECTING TO DATABASE-----')
+
 database = DB.Database()
+
+print('-----CONNECTED TO DATABASE-----')
+
 nstuapi = nstu_api.NstuApi()
 
 switch = 0
@@ -133,6 +140,8 @@ def allcallbacks_handler(call):
 
 while True:
     try:
+        print('-----POLLING-----')
         bot.polling()
     except Exception as e:
+        print('-----EXCEPTIN-----')
         print(e)
