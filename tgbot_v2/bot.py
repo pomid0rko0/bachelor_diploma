@@ -42,7 +42,8 @@ def start_handler(message):
         print(f"Error:\n{e}", flush=True)
         bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
         genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-    bot.send_message(message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
+    finally:
+        bot.send_message(message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
 
 @bot.message_handler(commands=['userinfo'])
 def userinfo(message):
@@ -73,7 +74,8 @@ def forward(message):
                 print(f"Error:\n{e}", flush=True)
                 bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
                 genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-            bot.send_message(message.chat.id, text=genmessage)
+            finally:
+                bot.send_message(message.chat.id, text=genmessage)
     if message.chat.type == 'group':
         user_id = message.reply_to_message.forward_from.id
         bot.send_message(user_id, 'new answer from: *SUPPORT*', parse_mode='Markdown', reply_markup=m.create_additional_markup(2, user_id))
@@ -93,7 +95,8 @@ def allcallbacks_handler(call):
             print(f"Error:\n{e}", flush=True)
             bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
+        finally:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data[0] == 's':
@@ -110,7 +113,8 @@ def allcallbacks_handler(call):
             print(f"Error:\n{e}", flush=True)
             bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
+        finally:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
 
 
@@ -132,7 +136,8 @@ def allcallbacks_handler(call):
             print(f"Error:\n{e}", flush=True)
             bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
+        finally:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data[0] == 'a':
@@ -146,7 +151,8 @@ def allcallbacks_handler(call):
             print(f"Error:\n{e}", flush=True)
             bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
+        finally:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data[0] == 'b':
@@ -161,7 +167,8 @@ def allcallbacks_handler(call):
             print(f"Error:\n{e}", flush=True)
             bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
+        finally:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data == 'gotosupport':
@@ -185,7 +192,8 @@ def allcallbacks_handler(call):
             print(f"Error:\n{e}", flush=True)
             bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.send_message(call.message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode='Markdown')
+        finally:
+            bot.send_message(call.message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode='Markdown')
     if call.data[0] == 'c':
         userID = re.sub('\D', '', call.data)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
