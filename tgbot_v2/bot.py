@@ -42,6 +42,8 @@ def start_handler(message):
         print(f"Error:\n{e}", flush=True)
         bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
     finally:
+        print(genmessage, flush=True)
+        print(reply_markup, flush=True)
         bot.send_message(message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
 
 @bot.message_handler(commands=['userinfo'])
