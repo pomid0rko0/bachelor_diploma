@@ -1,16 +1,20 @@
-from typing import Set
 import requests
 import pandas as pd
-import rstr
+import exrex
+import os
+from dotenv import load_dotenv
 
-# host = "http://217.71.129.139:4500"
+load_dotenv("../.env")
+
 host = "http://localhost:5005"
 
 data = pd.read_csv("./(with_examples)qa.csv", sep=";", names=["topic", "subtopic", "answer", "question", "regex_question"])
 
+print(requests.get(f"{host}/AuthManagement/RegisterFirst/"))
+
 token = requests.post(f"{host}/AuthManagement/Login/", json={
-  "email": "sychev.2017@stud.nstu.ru",
-  "password": "(sdHcmPT|4j1!3=K3t[T[?GgQ4d8"
+    "email": os.environ["FIRST_EMAIL"],
+    "password": os.environ["FIRST_PASSWORD"]
 }).json()["token"]
 
 for X in ["Questions", "Answers", "Subtopics", "Topics"]:
@@ -38,9 +42,7 @@ for index, row in data.iterrows():
     if subtopic != prev_subtopic:
         subtopic_id = requests.post(f"{host}/Subtopics/add",  params={"topicId": topic_id }, json=subtopic, headers={ "Authorization": f'Bearer {token}' }).json()["id"]
         prev_subtopic = subtopic
-    questions = set()
-    for _ in range(100_000):
-        questions.add(rstr.xeger(regex_question))
+    questions = set(exrex.generate(regex_question))
     print("generated questions:", len(questions))
     try:
         answer_id = requests.post(f"{host}/Answers/add", json={ "text": answer, "url": "https://ciu.nstu.ru/enrollee_account/answers" }, headers={ "Authorization": f'Bearer {token}' }).json()["id"]
