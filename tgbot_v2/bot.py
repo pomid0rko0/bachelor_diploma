@@ -33,13 +33,14 @@ def start_handler(message):
     DB.users.update({message.chat.id:0})
     bot.send_message(CHATID, text = f"Connected new user:\n*{message.from_user}*", parse_mode= 'Markdown')
     genmessage = None
+    reply_markup = None
     try:
         topics = database.get_topics()
         genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+        reply_markup = m.create_markup(topics, 1, -1)
     except:
         genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-    bot.send_message(message.chat.id, genmessage,
-                     reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
+    bot.send_message(message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
 
 @bot.message_handler(commands=['userinfo'])
 def userinfo(message):
@@ -79,31 +80,36 @@ def allcallbacks_handler(call):
     if call.data[0] == 't':
         topic_id = re.sub('\D', '', call.data)
         genmessage = None
+        reply_markup = None
         try:
             subtopics = database.topic_get_subotpics(topic_id)
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
+            reply_markup = m.create_markup(subtopics, 2, -1)
         except:
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(subtopics, 2, -1), parse_mode= 'Markdown')
+                     reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data[0] == 's':
         subtopic_id = re.sub('\D', '', call.data)
         genmessage = None
+        reply_markup = None
         try:
             questions = database.subtopic_get_questions(subtopic_id)
             topic = database.subtopic_get_topic(subtopic_id)
             previousID = topic["id"]
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(questions)}\n"
+            reply_markup = m.create_markup(questions, 3, previousID)
         except:
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(questions, 3, previousID), parse_mode= 'Markdown')
+                     reply_markup=reply_markup, parse_mode= 'Markdown')
 
 
     if call.data[0] == 'q':
         question_id = re.sub('\D', '', call.data)
         genmessage = None
+        reply_markup = None
         try:
             answer = database.question_get_answer(question_id)
             answervalue = answer["value"]
@@ -113,31 +119,36 @@ def allcallbacks_handler(call):
             question = database.question_get_question(question_id)
             questiontext = question["value"]
             genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\n[Прочитать больше]({answerlink})"
+            reply_markup = m.create_additional_markup(3, -1)
         except:
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_additional_markup(3, -1), parse_mode= 'Markdown')
+                     reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data[0] == 'a':
         genmessage = None
+        reply_markup = None
         try:
             topics = database.get_topics()
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+            reply_markup = m.create_markup(topics, 1, -1)
         except:
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(topics, 1, -1), parse_mode= 'Markdown')
+                     reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data[0] == 'b':
         topic_id = re.sub('\D', '', call.data)
         genmessage = None
+        reply_markup = None
         try:
             subtopics = database.topic_get_subotpics(topic_id)
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
+            reply_markup = m.create_markup(subtopics, 2, -1)
         except:
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
-                     reply_markup=m.create_markup(subtopics, 2, -1), parse_mode= 'Markdown')
+                     reply_markup=reply_markup, parse_mode= 'Markdown')
 
     if call.data == 'gotosupport':
         genmessage = 'Отправьте в чат *вопрос*, который вас интересует:\n'
@@ -151,13 +162,14 @@ def allcallbacks_handler(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text, parse_mode ='Markdown')
         DB.users.update({call.message.chat.id: 0})
         genmessage = None
+        reply_markup = None
         try:
             topics = database.get_topics()
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
+            reply_markup = m.create_markup(topics, 1, -1)
         except:
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
-        bot.send_message(call.message.chat.id, genmessage,
-                         reply_markup=m.create_markup(topics, 1, -1), parse_mode='Markdown')
+        bot.send_message(call.message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode='Markdown')
     if call.data[0] == 'c':
         userID = re.sub('\D', '', call.data)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
