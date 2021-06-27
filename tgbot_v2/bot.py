@@ -52,7 +52,7 @@ def userinfo(message):
     info = nstuapi.check_abit(userid)[0]
     print("info:", info, flush=True)
     if "NAME" in info:
-        userinfomsg = f"Статус: *{info['STATUS']}*\n " \
+        userinfomsg = f"Статус: *{info['STATUS']}*\n" \
                     f"Имя: *{info['NAME']}*\n" \
                     f"Заочная форма обучения: *{ 'Нет' if int(info['IS_ZAOCH']) == 0 else 'Да'}*\n" \
                     f"Иностранный студент: *{ 'Нет' if int(info['IS_FOREIGN']) == 0 else 'Да'}*\n" \
