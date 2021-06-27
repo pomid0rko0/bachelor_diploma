@@ -63,7 +63,11 @@ class Database:
         )
         print(response)
         print(response.text)
-        return response.json()
+        try:
+            return response.json()
+        except Exception as e:
+            print(e)
+            return response.text
 
     def get(self, endpoint, *args, **kwargs):
         return self.request(method="GET", endpoint=endpoint, *args, **kwargs)
