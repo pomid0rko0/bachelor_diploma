@@ -38,7 +38,9 @@ def start_handler(message):
         topics = database.get_topics()
         genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
         reply_markup = m.create_markup(topics, 1, -1)
-    except:
+    except Exception as e:
+        print(f"Error:\n{e}")
+        bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
         genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
     bot.send_message(message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
 
@@ -67,7 +69,9 @@ def forward(message):
             genmessage = None
             try:
                 genmessage = database.parse(message.chat.username, message.text)
-            except:
+            except Exception as e:
+                print(f"Error:\n{e}")
+                bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
                 genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
             bot.send_message(message.chat.id, text=genmessage)
     if message.chat.type == 'group':
@@ -85,7 +89,9 @@ def allcallbacks_handler(call):
             subtopics = database.topic_get_subotpics(topic_id)
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
             reply_markup = m.create_markup(subtopics, 2, -1)
-        except:
+        except Exception as e:
+            print(f"Error:\n{e}")
+            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -100,7 +106,9 @@ def allcallbacks_handler(call):
             previousID = topic["id"]
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(questions)}\n"
             reply_markup = m.create_markup(questions, 3, previousID)
-        except:
+        except Exception as e:
+            print(f"Error:\n{e}")
+            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -120,7 +128,9 @@ def allcallbacks_handler(call):
             questiontext = question["value"]
             genmessage = f"Ваш вопрос:\n*{questiontext}*\nВаш ответ:\n*{answervalue}*\n[Прочитать больше]({answerlink})"
             reply_markup = m.create_additional_markup(3, -1)
-        except:
+        except Exception as e:
+            print(f"Error:\n{e}")
+            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -132,7 +142,9 @@ def allcallbacks_handler(call):
             topics = database.get_topics()
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
             reply_markup = m.create_markup(topics, 1, -1)
-        except:
+        except Exception as e:
+            print(f"Error:\n{e}")
+            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -145,7 +157,9 @@ def allcallbacks_handler(call):
             subtopics = database.topic_get_subotpics(topic_id)
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(subtopics)}\n"
             reply_markup = m.create_markup(subtopics, 2, -1)
-        except:
+        except Exception as e:
+            print(f"Error:\n{e}")
+            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -167,7 +181,9 @@ def allcallbacks_handler(call):
             topics = database.get_topics()
             genmessage = f"Выберите тему, которая вас интересует:\n{make_text_list(topics)}\n"
             reply_markup = m.create_markup(topics, 1, -1)
-        except:
+        except Exception as e:
+            print(f"Error:\n{e}")
+            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
             genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
         bot.send_message(call.message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode='Markdown')
     if call.data[0] == 'c':
