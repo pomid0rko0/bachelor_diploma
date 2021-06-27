@@ -6,7 +6,7 @@ services:
       - "5432"
     restart: always
     volumes:
-      - ./Postgres/var/lib/postgresql:/var/lib/postgresql
+      - ./Postgres/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: NSTUChatbot
       POSTGRES_PASSWORD: NSTUChatbot
