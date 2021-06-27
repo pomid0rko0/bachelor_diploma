@@ -53,14 +53,17 @@ class Database:
             except Exception as e:
                 print(e)
                 time.sleep(10)
-
-        return requests.request(
+        
+        response = requests.request(
             method=method, 
             url=self.db_host + endpoint, 
             auth=self.auth,
             *args,
             **kwargs,
-        ).json()
+        )
+        print(response)
+        print(response.text)
+        return response.json()
 
     def get(self, endpoint, *args, **kwargs):
         return self.request(method="GET", endpoint=endpoint, *args, **kwargs)
