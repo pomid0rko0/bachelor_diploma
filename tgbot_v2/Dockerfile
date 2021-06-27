@@ -6,4 +6,4 @@ WORKDIR /app/tgbot_v2
 
 COPY . .
 
-CMD ["python", "bot.py"]
+ENTRYPOINT ["python", "bot.py"]
