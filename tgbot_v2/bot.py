@@ -4,12 +4,13 @@ import markups as m
 import DB
 import re
 import os
+import nstu_api
 
 TOKEN = os.environ["TG_TOKEN"]
 CHATID = os.environ["TG_CHAT_ID"]
 
 database = DB.Database()
-nstuapi = nstu_api.NstuApi
+nstuapi = nstu_api.NstuApi()
 
 switch = 0
 
