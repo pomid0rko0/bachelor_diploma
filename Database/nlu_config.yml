@@ -11,7 +11,7 @@ pipeline:
     min_ngram: 1
     max_ngram: 3
   - name: DIETClassifier
-    epochs: 300
+    epochs: 100
   - name: FallbackClassifier
     threshold: 0.9
 
