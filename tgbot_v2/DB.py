@@ -26,7 +26,7 @@ class TokenAuth(AuthBase):
                 expire_date = datetime.utcnow() + timedelta(seconds=expires - 30)
                 self.auth_token = { "token": token, "expire_date": expire_date }
             except Exception as e:
-                print(e)
+                print(e, flush=True)
                 time.sleep(10)
         r.headers["Authorization"] = f"Bearer {self.auth_token['token']}"
         return r
@@ -47,10 +47,10 @@ class Database:
     def request(self, method, endpoint, *args, **kwargs):
         while not self.is_ready:
             try:
-                print(requests.get(self.db_host + "/Nlu/status").json())
+                print(requests.get(self.db_host + "/Nlu/status").json(), flush=True)
                 self.is_ready = True
             except Exception as e:
-                print(e)
+                print(e, flush=True)
                 time.sleep(10)
         
         response = requests.request(
@@ -60,12 +60,12 @@ class Database:
             *args,
             **kwargs,
         )
-        print(response)
-        print(response.text)
+        print(response, flush=True)
+        print(response.text, flush=True)
         try:
             return response.json()
         except Exception as e:
-            print(e)
+            print(e, flush=True)
             return response.text
 
     def get(self, endpoint, *args, **kwargs):
