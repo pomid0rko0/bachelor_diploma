@@ -116,5 +116,8 @@ def allcallbacks_handler(call):
             nick = bot.get_chat_member(userID, userID).user.username
             bot.send_message(CHATID, f"Тикет: {userID} / @{nick} закрыт")
 
-
-bot.polling()
+while True:
+    try:
+        bot.polling()
+    except:
+        pass

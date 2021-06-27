@@ -17,6 +17,7 @@ class TokenAuth(AuthBase):
  
     def __call__(self, r):
         """Attach an API token to a custom auth header."""
+        token = None
         expire_date = self.auth_token["expire_date"]
         while expire_date <= datetime.utcnow():
             try:
