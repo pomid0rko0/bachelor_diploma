@@ -9,6 +9,7 @@ ENV SPELLING_DATASET_FILE dialogues.txt
 ENV SPELLING_MODEL_FILE ru_nstu_chatbot.bin
 
 USER root
+RUN apt-get update
 RUN apt-get install -y \
     cmake \
     g++ \
