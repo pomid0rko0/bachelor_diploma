@@ -46,17 +46,20 @@ def start_handler(message):
 
 @bot.message_handler(commands=['userinfo'])
 def userinfo(message):
-    userid = message.text.replace('/userinfo', '').strip()
+    userid = re.sub(r"[^A-Z\d]", "", message.text)
+    print("userid:", userid, flush=True)
+    bot.send_message(CHATID, text = f"User:\n*{message.from_user}* requested *{userid}*", parse_mode= 'Markdown')
     info = nstuapi.check_abit(userid)
-    userinfomsg = "Извините, такого пользователя не знаю!"
     if "NAME" in info:
         userinfomsg = f"Статус: *{info['STATUS'].encode('ascii').decode('unicode_escape')}*\n " \
                     f"Имя: *{info['NAME'].encode('ascii').decode('unicode_escape')}*\n" \
                     f"Заочная форма обучения: *{ 'Нет' if int(info['IS_ZAOCH']) == 0 else 'Да'}*\n" \
                     f"Иностранный студент: *{ 'Нет' if int(info['IS_FOREIGN']) == 0 else 'Да'}*\n" \
                     f"Имеются льготы: *{ 'Нет' if int(info['IS_LGOTA']) == 0 else 'Да'}*\n" \
-                    f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"    
-    bot.send_message(message.chat.id, userinfomsg, parse_mode='Markdown')
+                    f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"
+    else:
+        userinfomsg = "Извините, такого пользователя не знаю!"                
+    bot.send_message(message.chat.id, text=userinfomsg, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
 def forward(message):
