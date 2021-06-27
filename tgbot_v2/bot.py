@@ -56,7 +56,7 @@ def userinfo(message):
                     f"Иностранный студент: *{ 'Нет' if int(info['IS_FOREIGN']) == 0 else 'Да'}*\n" \
                     f"Имеются льготы: *{ 'Нет' if int(info['IS_LGOTA']) == 0 else 'Да'}*\n" \
                     f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"    
-    bot.send_message(CHATID, userinfomsg, parse_mode='Markdown')
+    bot.send_message(message.chat.id, userinfomsg, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
 def forward(message):
