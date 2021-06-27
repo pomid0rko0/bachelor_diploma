@@ -32,7 +32,7 @@ services:
     image: diploma_rasa_project
     build: ./NLU
     volumes:
-      - ./NLU/models:/app/NLU/models
+      - nlu:/app/NLU/models
     environment:
       RASA_TELEMETRY_ENABLED: "false"
       APP_FOLDER: /app/NLU
@@ -58,3 +58,4 @@ services:
 
 volumes:
   pgdata:
+  nlu:
