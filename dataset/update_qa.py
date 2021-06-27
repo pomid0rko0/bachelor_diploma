@@ -3,6 +3,7 @@ import pandas as pd
 import exrex
 import os
 from dotenv import load_dotenv
+from random import shuffle
 
 load_dotenv("../.env")
 
@@ -44,7 +45,7 @@ for index, row in data.iterrows():
     if subtopic != prev_subtopic:
         subtopic_id = requests.post(f"{host}/Subtopics/add",  params={"topicId": topic_id }, json=subtopic, headers={ "Authorization": f'Bearer {token}' }).json()["id"]
         prev_subtopic = subtopic
-    questions = set(exrex.generate(regex_question))
+    questions = shuffle(list(exrex.generate(regex_question)))[:100]
     print("generated questions:", len(questions))
     try:
         answer_id = requests.post(f"{host}/Answers/add", json={ "text": answer, "url": "https://ciu.nstu.ru/enrollee_account/answers" }, headers={ "Authorization": f'Bearer {token}' }).json()["id"]
