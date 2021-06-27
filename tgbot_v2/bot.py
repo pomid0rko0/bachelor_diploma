@@ -31,7 +31,7 @@ def make_text_list(arr):
 def start_handler(message):
     user_info = message.from_user.to_dict()
     DB.users.update({message.chat.id:0})
-    bot.send_message(CHATID, text = f"Connected new user:\n*{message.from_user}*", parse_mode= 'Markdown')
+    bot.send_message(CHATID, f"Connected new user:\n*{message.from_user}*", parse_mode= 'Markdown')
     genmessage = f"Простите, что-то пошло не так. Попробуйте ещё раз позже."
     reply_markup = None
     try:
@@ -40,17 +40,17 @@ def start_handler(message):
         reply_markup = m.create_markup(topics, 1, -1)
     except Exception as e:
         print(f"Error:\n{e}", flush=True)
-        bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+        bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
     finally:
         print(genmessage, flush=True)
         print(reply_markup, flush=True)
-        bot.send_message(message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
+        bot.send_message(message.chat.id, genmessage, reply_markup=reply_markup, parse_mode= 'Markdown')
 
 @bot.message_handler(commands=['userinfo'])
 def userinfo(message):
     userid = re.sub(r"[^A-Z\d]", "", message.text)
     print("userid:", userid, flush=True)
-    bot.send_message(CHATID, text = f"User:\n*{message.from_user}* requested *{userid}*", parse_mode= 'Markdown')
+    bot.send_message(CHATID, f"User:\n*{message.from_user}* requested *{userid}*", parse_mode= 'Markdown')
     info = nstuapi.check_abit(userid)[0]
     print("info:", info, flush=True)
     if "NAME" in info:
@@ -62,7 +62,7 @@ def userinfo(message):
                     f"Контрактная форма обучения: *{ 'Нет' if int(info['IS_CONTRACT']) == 0 else 'Да'}*\n"
     else:
         userinfomsg = "Извините, такого пользователя не знаю!"                
-    bot.send_message(message.chat.id, text=userinfomsg, parse_mode='Markdown')
+    bot.send_message(message.chat.id, userinfomsg, parse_mode='Markdown')
 
 @bot.message_handler(content_types=["text"])
 def forward(message):
@@ -77,9 +77,9 @@ def forward(message):
                 genmessage = database.parse(message.chat.username, message.text)
             except Exception as e:
                 print(f"Error:\n{e}", flush=True)
-                bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+                bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
             finally:
-                bot.send_message(message.chat.id, text=genmessage)
+                bot.send_message(message.chat.id, genmessage)
     if message.chat.type == 'group':
         user_id = message.reply_to_message.forward_from.id
         bot.send_message(user_id, 'new answer from: *SUPPORT*', parse_mode='Markdown', reply_markup=m.create_additional_markup(2, user_id))
@@ -97,7 +97,7 @@ def allcallbacks_handler(call):
             reply_markup = m.create_markup(subtopics, 2, -1)
         except Exception as e:
             print(f"Error:\n{e}", flush=True)
-            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+            bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
         finally:
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -114,7 +114,7 @@ def allcallbacks_handler(call):
             reply_markup = m.create_markup(questions, 3, previousID)
         except Exception as e:
             print(f"Error:\n{e}", flush=True)
-            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+            bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
         finally:
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -136,7 +136,7 @@ def allcallbacks_handler(call):
             reply_markup = m.create_additional_markup(3, -1)
         except Exception as e:
             print(f"Error:\n{e}", flush=True)
-            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+            bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
         finally:
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -150,7 +150,7 @@ def allcallbacks_handler(call):
             reply_markup = m.create_markup(topics, 1, -1)
         except Exception as e:
             print(f"Error:\n{e}", flush=True)
-            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+            bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
         finally:
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -165,7 +165,7 @@ def allcallbacks_handler(call):
             reply_markup = m.create_markup(subtopics, 2, -1)
         except Exception as e:
             print(f"Error:\n{e}", flush=True)
-            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+            bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
         finally:
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=genmessage,
                      reply_markup=reply_markup, parse_mode= 'Markdown')
@@ -175,7 +175,7 @@ def allcallbacks_handler(call):
         DB.users.update({call.message.chat.id:1})
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
                               parse_mode='Markdown')
-        bot.send_message(call.message.chat.id, text = genmessage, reply_markup = m.create_additional_markup(3, -1),
+        bot.send_message(call.message.chat.id, genmessage, reply_markup = m.create_additional_markup(3, -1),
                          parse_mode= 'Markdown')
 
     if call.data == '/start':
@@ -189,9 +189,9 @@ def allcallbacks_handler(call):
             reply_markup = m.create_markup(topics, 1, -1)
         except Exception as e:
             print(f"Error:\n{e}", flush=True)
-            bot.send_message(CHATID, text = f"Error:\n```{e}```", parse_mode= 'Markdown')
+            bot.send_message(CHATID, f"Error:\n```{e}```", parse_mode= 'Markdown')
         finally:
-            bot.send_message(call.message.chat.id, text=genmessage, reply_markup=reply_markup, parse_mode='Markdown')
+            bot.send_message(call.message.chat.id, genmessage, reply_markup=reply_markup, parse_mode='Markdown')
     if call.data[0] == 'c':
         userID = re.sub('\D', '', call.data)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text,
