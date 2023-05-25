@@ -1,4 +1,4 @@
-FROM rasa/rasa:2.6.3
+FROM rasa/rasa:3.5.10
 
 ENV RASA_TELEMETRY_ENABLED=false
 ENV NLU_PATH /app/NLU
