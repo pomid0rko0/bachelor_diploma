@@ -19,6 +19,8 @@ namespace Database.Nlu
         {
             public string text { get; set; }
         }
+        public string recipe { get; set; }
+        public string assistant_id { get; set; }
         public string language { get; set; }
         public virtual object pipeline { get; set; }
 

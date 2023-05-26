@@ -1,8 +1,9 @@
+recipe: default.v1
+assistant_id: telegram
 language: ru
 
 pipeline:
-  - name: text_preprocessing.TextPreprocessor
-  - name: spelling_correction.SpellingCorrector
+  - name: text_processing.TextPreprocessor
   - name: WhitespaceTokenizer
   - name: RegexFeaturizer
   - name: CountVectorsFeaturizer
